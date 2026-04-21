@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'core/theme/app_theme.dart';
 import 'features/auth/presentation/screens/login_screen.dart';
+import 'features/auth/presentation/screens/register_screen.dart';
+import 'features/home/presentation/screens/home_screen.dart';
+import 'routes/app_routes.dart';
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
@@ -10,8 +13,13 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'SkillUp',
       theme: AppTheme.lightTheme,
-      home: const LoginScreen(),
       debugShowCheckedModeBanner: false,
+      initialRoute: AppRoutes.login,
+      routes: {
+        AppRoutes.login: (context) => const LoginScreen(),
+        AppRoutes.register: (context) => const RegisterScreen(),
+        AppRoutes.home: (context) => const HomeScreen(),
+      },
     );
   }
 }
