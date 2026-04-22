@@ -20,8 +20,8 @@ class SocialButton extends StatelessWidget {
       onTap: onPressed,
       borderRadius: BorderRadius.circular(AppDimensions.radiusM),
       child: Container(
-        width: AppDimensions.socialButtonWidth,
         height: AppDimensions.socialButtonHeight,
+        padding: const EdgeInsets.symmetric(horizontal: AppDimensions.paddingM),
         decoration: BoxDecoration(
           border: Border.all(color: AppColors.border),
           borderRadius: BorderRadius.circular(AppDimensions.radiusM),

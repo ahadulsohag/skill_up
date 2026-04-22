@@ -3,6 +3,7 @@ import 'core/theme/app_theme.dart';
 import 'features/auth/presentation/screens/login_screen.dart';
 import 'features/auth/presentation/screens/register_screen.dart';
 import 'features/home/presentation/screens/home_screen.dart';
+import 'features/lesson/presentation/screens/python_basics_screen.dart';
 import 'routes/app_routes.dart';
 
 class MyApp extends StatelessWidget {
@@ -19,6 +20,7 @@ class MyApp extends StatelessWidget {
         AppRoutes.login: (context) => const LoginScreen(),
         AppRoutes.register: (context) => const RegisterScreen(),
         AppRoutes.home: (context) => const HomeScreen(),
+        AppRoutes.pythonBasics: (context) => const PythonBasicsScreen(),
       },
     );
   }

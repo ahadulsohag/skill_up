@@ -21,6 +21,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
   bool _isPasswordVisible = false;
+  bool _isConfirmPasswordVisible = false;
   bool _isLoading = false;
 
   @override
@@ -141,12 +142,22 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     ),
                   ),
                   const SizedBox(height: AppDimensions.paddingL),
+                  const SizedBox(height: AppDimensions.paddingL),
                   AuthTextField(
                     label: AppStrings.confirmPassword,
                     hint: AppStrings.passwordHint,
                     controller: _confirmPasswordController,
-                    obscureText: true,
+                    obscureText: !_isConfirmPasswordVisible,
                     validator: _validateConfirmPassword,
+                    suffixIcon: IconButton(
+                      icon: Icon(
+                        _isConfirmPasswordVisible
+                            ? Icons.visibility_outlined
+                            : Icons.visibility_off_outlined,
+                        color: AppColors.textLight,
+                      ),
+                      onPressed: () => setState(() => _isConfirmPasswordVisible = !_isConfirmPasswordVisible),
+                    ),
                   ),
                   const SizedBox(height: AppDimensions.paddingXL),
                   CustomButton(
@@ -156,15 +167,21 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   ),
                   const SizedBox(height: AppDimensions.paddingL),
                   Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Text(
-                        AppStrings.orContinueWith,
-                        style: TextStyle(
-                          fontSize: AppDimensions.fontXS,
-                          color: AppColors.textSecondary,
+                      const Expanded(child: Divider(color: AppColors.border)),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: AppDimensions.paddingM,
+                        ),
+                        child: Text(
+                          AppStrings.orContinueWith,
+                          style: TextStyle(
+                            fontSize: AppDimensions.fontXS,
+                            color: AppColors.textSecondary,
+                          ),
                         ),
                       ),
+                      const Expanded(child: Divider(color: AppColors.border)),
                     ],
                   ),
                   const SizedBox(height: AppDimensions.paddingL),
@@ -181,6 +198,33 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         icon: Icons.apple,
                         label: AppStrings.apple,
                         onPressed: () {},
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: AppDimensions.paddingXL),
+                  // Sign In Link
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Text(
+                        "Already have an account? ",
+                        style: TextStyle(
+                          color: AppColors.textSecondary,
+                          fontSize: AppDimensions.fontS,
+                        ),
+                      ),
+                      GestureDetector(
+                        onTap: () {
+                          Navigator.pop(context);
+                        },
+                        child: const Text(
+                          AppStrings.signIn,
+                          style: TextStyle(
+                            color: AppColors.primary,
+                            fontWeight: FontWeight.w600,
+                            fontSize: AppDimensions.fontS,
+                          ),
+                        ),
                       ),
                     ],
                   ),
