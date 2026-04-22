@@ -60,7 +60,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
       // Navigate to home screen
       if (mounted) {
-        Navigator.pushReplacementNamed(context, AppRoutes.home);
+        Navigator.pushReplacementNamed(context, AppRoutes.main);
       }
     }
   }
