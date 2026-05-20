@@ -9,9 +9,7 @@ class ProfileScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Profile'),
-      ),
+      appBar: AppBar(title: const Text('Profile')),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(AppDimensions.paddingL),
         child: Column(
@@ -23,14 +21,14 @@ class ProfileScreen extends StatelessWidget {
             ),
             const SizedBox(height: AppDimensions.paddingL),
             const Text(
-              'Alex Rivera',
+              'Sohag',
               style: TextStyle(
                 fontSize: AppDimensions.fontXL,
                 fontWeight: FontWeight.bold,
               ),
             ),
             const Text(
-              'alex.rivera@university.edu',
+              'sohag.223071151@smuct.ac.bd',
               style: TextStyle(color: AppColors.textSecondary),
             ),
             const SizedBox(height: AppDimensions.paddingXL),
@@ -52,8 +50,12 @@ class ProfileScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildProfileOption(IconData icon, String title,
-      {Color? textColor, VoidCallback? onTap}) {
+  Widget _buildProfileOption(
+    IconData icon,
+    String title, {
+    Color? textColor,
+    VoidCallback? onTap,
+  }) {
     return ListTile(
       leading: Icon(icon, color: textColor ?? AppColors.textPrimary),
       title: Text(
