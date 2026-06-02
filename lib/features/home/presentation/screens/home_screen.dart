@@ -14,6 +14,7 @@ class HomeScreen extends StatelessWidget {
       appBar: AppBar(
         title: Row(
           children: [
+            sizedbox(height:2),
             CircleAvatar(
               radius: 18,
               backgroundColor: AppColors.primary.withAlpha(40),
