@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../../../../core/constants/app_colors.dart';
-import '../../../../core/constants/app_strings.dart';
 import '../../../../core/constants/app_dimensions.dart';
+import '../../../../core/constants/app_strings.dart';
+import '../../../../core/providers/auth_provider.dart';
 import '../../../../core/widgets/custom_button.dart';
-import '../widgets/auth_text_field.dart';
-import '../widgets/social_button.dart';
 import '../../../../routes/app_routes.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -18,8 +18,7 @@ class _LoginScreenState extends State<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
-  bool _isPasswordVisible = false;
-  bool _isLoading = false;
+  bool _obscurePassword = true;
 
   @override
   void dispose() {
@@ -28,38 +27,17 @@ class _LoginScreenState extends State<LoginScreen> {
     super.dispose();
   }
 
-  String? _validateEmail(String? value) {
-    if (value == null || value.isEmpty) {
-      return AppStrings.emailRequired;
-    }
-    final emailRegex = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
-    if (!emailRegex.hasMatch(value)) {
-      return AppStrings.invalidEmail;
-    }
-    return null;
-  }
-
-  String? _validatePassword(String? value) {
-    if (value == null || value.isEmpty) {
-      return AppStrings.passwordRequired;
-    }
-    if (value.length < 8) {
-      return AppStrings.passwordLength;
-    }
-    return null;
-  }
-
   Future<void> _handleLogin() async {
-    if (_formKey.currentState?.validate() ?? false) {
-      setState(() => _isLoading = true);
+    if (!_formKey.currentState!.validate()) return;
 
-      // Simulate API call
-      await Future.delayed(const Duration(seconds: 2));
+    final authProvider = context.read<AuthProvider>();
+    final success = await authProvider.signIn(
+      email: _emailController.text.trim(),
+      password: _passwordController.text,
+    );
 
-      setState(() => _isLoading = false);
-
-      // Navigate to home screen
-      if (mounted) {
+    if (success && mounted) {
+      if (context.mounted) {
         Navigator.pushReplacementNamed(context, AppRoutes.main);
       }
     }
@@ -68,147 +46,151 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.background,
       body: SafeArea(
-        child: SingleChildScrollView(
-          child: Padding(
-            padding: const EdgeInsets.all(AppDimensions.paddingL),
-            child: Form(
-              key: _formKey,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const SizedBox(height: AppDimensions.paddingL),
+        child: Padding(
+          padding: const EdgeInsets.all(AppDimensions.paddingL),
+          child: Form(
+            key: _formKey,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                const Spacer(flex: 1),
+                const Icon(
+                  Icons.school_rounded,
+                  size: 60,
+                  color: AppColors.primary,
+                ),
+                const SizedBox(height: AppDimensions.paddingM),
+                Text(
+                  AppStrings.welcomeBack,
+                  style: Theme.of(context).textTheme.headlineMedium,
+                ),
+                const SizedBox(height: AppDimensions.paddingS),
+                Text(
+                  AppStrings.appTagline,
+                  style: Theme.of(context).textTheme.bodyMedium,
+                ),
+                const SizedBox(height: AppDimensions.paddingXL),
 
-                  // Header
-                  Text(
-                    AppStrings.welcomeBack,
-                    style: Theme.of(context).textTheme.headlineMedium,
+                TextFormField(
+                  controller: _emailController,
+                  keyboardType: TextInputType.emailAddress,
+                  decoration: const InputDecoration(
+                    labelText: AppStrings.emailAddress,
+                    hintText: AppStrings.emailHint,
+                    prefixIcon: Icon(Icons.email_outlined),
                   ),
-                  const SizedBox(height: AppDimensions.paddingS),
-                  Text(
-                    AppStrings.appTagline,
-                    style: Theme.of(context).textTheme.bodyMedium,
-                  ),
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return AppStrings.emailRequired;
+                    }
+                    if (!value.contains('@') || !value.contains('.')) {
+                      return AppStrings.invalidEmail;
+                    }
+                    return null;
+                  },
+                ),
+                const SizedBox(height: AppDimensions.paddingM),
 
-                  const SizedBox(height: AppDimensions.paddingXL * 1.5),
-
-                  // Email Field
-                  AuthTextField(
-                    label: AppStrings.emailAddress,
-                    hint: AppStrings.emailHint,
-                    controller: _emailController,
-                    keyboardType: TextInputType.emailAddress,
-                    validator: _validateEmail,
-                  ),
-
-                  const SizedBox(height: AppDimensions.paddingL),
-
-                  // Password Field
-                  AuthTextField(
-                    label: AppStrings.password,
-                    hint: AppStrings.passwordHint,
-                    controller: _passwordController,
-                    obscureText: !_isPasswordVisible,
-                    validator: _validatePassword,
+                TextFormField(
+                  controller: _passwordController,
+                  obscureText: _obscurePassword,
+                  decoration: InputDecoration(
+                    labelText: AppStrings.password,
+                    hintText: AppStrings.passwordHint,
+                    prefixIcon: const Icon(Icons.lock_outline),
                     suffixIcon: IconButton(
                       icon: Icon(
-                        _isPasswordVisible
-                            ? Icons.visibility_outlined
-                            : Icons.visibility_off_outlined,
-                        color: AppColors.textLight,
+                        _obscurePassword
+                            ? Icons.visibility_off
+                            : Icons.visibility,
                       ),
                       onPressed: () {
-                        setState(() => _isPasswordVisible = !_isPasswordVisible);
+                        setState(() {
+                          _obscurePassword = !_obscurePassword;
+                        });
                       },
                     ),
                   ),
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return AppStrings.passwordRequired;
+                    }
+                    if (value.length < 6) {
+                      return 'Password must be at least 6 characters';
+                    }
+                    return null;
+                  },
+                ),
+                const SizedBox(height: AppDimensions.paddingM),
 
-                  const SizedBox(height: AppDimensions.paddingXL),
-
-                  // Login Button
-                  CustomButton(
-                    text: AppStrings.login,
-                    onPressed: _handleLogin,
-                    isLoading: _isLoading,
-                  ),
-
-                  const SizedBox(height: AppDimensions.paddingL),
-
-                  // Divider
-                  Row(
-                    children: [
-                      Expanded(child: Divider(color: AppColors.border)),
-                      Padding(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: AppDimensions.paddingM,
+                if (context.watch<AuthProvider>().errorMessage != null)
+                  Container(
+                    padding: const EdgeInsets.all(AppDimensions.paddingS),
+                    decoration: BoxDecoration(
+                      color: AppColors.error.withAlpha(25),
+                      borderRadius: BorderRadius.circular(
+                        AppDimensions.radiusS,
+                      ),
+                    ),
+                    child: Row(
+                      children: [
+                        const Icon(
+                          Icons.error_outline,
+                          color: AppColors.error,
+                          size: 20,
                         ),
-                        child: Text(
-                          AppStrings.orContinueWith,
-                          style: TextStyle(
-                            fontSize: AppDimensions.fontXS,
-                            color: AppColors.textSecondary,
+                        const SizedBox(width: AppDimensions.paddingS),
+                        Expanded(
+                          child: Text(
+                            context.watch<AuthProvider>().errorMessage!,
+                            style: const TextStyle(
+                              color: AppColors.error,
+                              fontSize: AppDimensions.fontS,
+                            ),
                           ),
                         ),
-                      ),
-                      Expanded(child: Divider(color: AppColors.border)),
-                    ],
+                      ],
+                    ),
                   ),
 
-                  const SizedBox(height: AppDimensions.paddingL),
+                if (context.watch<AuthProvider>().errorMessage != null)
+                  const SizedBox(height: AppDimensions.paddingM),
 
-                  // Social Buttons
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      SocialButton(
-                        icon: Icons.g_mobiledata,
-                        label: AppStrings.google,
-                        onPressed: () {
-                          // Handle Google Sign In
-                        },
-                      ),
-                      const SizedBox(width: AppDimensions.paddingM),
-                      SocialButton(
-                        icon: Icons.apple,
-                        label: AppStrings.apple,
-                        onPressed: () {
-                          // Handle Apple Sign In
-                        },
-                      ),
-                    ],
-                  ),
+                Consumer<AuthProvider>(
+                  builder: (context, authProvider, child) {
+                    return CustomButton(
+                      text: AppStrings.login,
+                      onPressed: _handleLogin,
+                      isLoading: authProvider.isLoading,
+                    );
+                  },
+                ),
+                const SizedBox(height: AppDimensions.paddingM),
 
-                  const SizedBox(height: AppDimensions.paddingXL),
-
-                  // Sign Up Link
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text(
-                        AppStrings.dontHaveAccount,
-                        style: TextStyle(
-                          color: AppColors.textSecondary,
-                          fontSize: AppDimensions.fontS,
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      AppStrings.dontHaveAccount,
+                      style: Theme.of(context).textTheme.bodyMedium,
+                    ),
+                    TextButton(
+                      onPressed: () {
+                        Navigator.pushNamed(context, AppRoutes.register);
+                      },
+                      child: Text(
+                        AppStrings.signUp,
+                        style: const TextStyle(
+                          color: AppColors.primary,
+                          fontWeight: FontWeight.bold,
                         ),
                       ),
-                      GestureDetector(
-                        onTap: () {
-                          Navigator.pushNamed(context, AppRoutes.register);
-                        },
-                        child: Text(
-                          AppStrings.signUp,
-                          style: const TextStyle(
-                            color: AppColors.primary,
-                            fontWeight: FontWeight.w600,
-                            fontSize: AppDimensions.fontS,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
+                    ),
+                  ],
+                ),
+                const Spacer(flex: 2),
+              ],
             ),
           ),
         ),

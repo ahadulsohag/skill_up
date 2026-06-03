@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_dimensions.dart';
+import '../../../../core/providers/auth_provider.dart';
 import '../../../../routes/app_routes.dart';
 
 class ProfileScreen extends StatefulWidget {
@@ -11,7 +13,6 @@ class ProfileScreen extends StatefulWidget {
 }
 
 class _ProfileScreenState extends State<ProfileScreen> {
-  // Simple layout states for the switches
   bool _isDarkMode = false;
   bool _notificationsEnabled = true;
 
@@ -30,121 +31,129 @@ class _ProfileScreenState extends State<ProfileScreen> {
           ),
         ],
       ),
-      body: SingleChildScrollView(
-        physics: const BouncingScrollPhysics(),
-        padding: const EdgeInsets.all(AppDimensions.paddingL),
-        child: Column(
-          children: [
-            // Hero Profile Header Card Layout
-            const CircleAvatar(
-              radius: 54,
-              backgroundColor: AppColors.primary,
-              child: CircleAvatar(
-                radius: 50,
-                backgroundColor: Colors.white,
-                child: Icon(
-                  Icons.person_rounded,
-                  size: 60,
-                  color: AppColors.primary,
+      body: Consumer<AuthProvider>(
+        builder: (context, authProvider, child) {
+          final user = authProvider.currentUser;
+          final email = user?.email ?? 'user@example.com';
+          final name = user?.userMetadata?['full_name'] ?? email.split('@')[0];
+
+          return SingleChildScrollView(
+            physics: const BouncingScrollPhysics(),
+            padding: const EdgeInsets.all(AppDimensions.paddingL),
+            child: Column(
+              children: [
+                const CircleAvatar(
+                  radius: 54,
+                  backgroundColor: AppColors.primary,
+                  child: CircleAvatar(
+                    radius: 50,
+                    backgroundColor: Colors.white,
+                    child: Icon(
+                      Icons.person_rounded,
+                      size: 60,
+                      color: AppColors.primary,
+                    ),
+                  ),
                 ),
-              ),
-            ),
-            const SizedBox(height: AppDimensions.paddingM),
-            const Text(
-              'Sohag',
-              style: TextStyle(
-                fontSize: AppDimensions.fontXL,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            const SizedBox(height: 2),
-            Text(
-              'sohag.223071151@smuct.ac.bd',
-              style: TextStyle(
-                color: Colors.grey[600],
-                fontSize: AppDimensions.fontM - 2,
-              ),
-            ),
-            const SizedBox(height: AppDimensions.paddingXL),
-
-            // Achievement Rank Tracker Module
-            _buildTierProgressCard(),
-            const SizedBox(height: AppDimensions.paddingXL),
-
-            // Achievement Badges Section Header
-            _buildSectionHeader('Earned Achievements'),
-            const SizedBox(height: AppDimensions.paddingM),
-            _buildBadgesRow(),
-            const SizedBox(height: AppDimensions.paddingXL),
-
-            // General Settings Card Block
-            _buildSectionHeader('Preferences'),
-            const SizedBox(height: AppDimensions.paddingM),
-            Card(
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-              elevation: 0,
-              color: Theme.of(context).cardColor,
-              child: Column(
-                children: [
-                  _buildToggleOption(
-                    Icons.dark_mode_rounded,
-                    'Dark Interface Mode',
-                    _isDarkMode,
-                    (value) => setState(() => _isDarkMode = value),
+                const SizedBox(height: AppDimensions.paddingM),
+                Text(
+                  name,
+                  style: const TextStyle(
+                    fontSize: AppDimensions.fontXL,
+                    fontWeight: FontWeight.bold,
                   ),
-                  _buildToggleOption(
-                    Icons.notifications_active_rounded,
-                    'Push Notifications',
-                    _notificationsEnabled,
-                    (value) => setState(() => _notificationsEnabled = value),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  email,
+                  style: TextStyle(
+                    color: Colors.grey[600],
+                    fontSize: AppDimensions.fontM - 2,
                   ),
-                ],
-              ),
+                ),
+                const SizedBox(height: AppDimensions.paddingXL),
+                _buildTierProgressCard(),
+                const SizedBox(height: AppDimensions.paddingXL),
+                _buildSectionHeader('Earned Achievements'),
+                const SizedBox(height: AppDimensions.paddingM),
+                _buildBadgesRow(),
+                const SizedBox(height: AppDimensions.paddingXL),
+                _buildSectionHeader('Preferences'),
+                const SizedBox(height: AppDimensions.paddingM),
+                Card(
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  elevation: 0,
+                  color: Theme.of(context).cardColor,
+                  child: Column(
+                    children: [
+                      _buildToggleOption(
+                        Icons.dark_mode_rounded,
+                        'Dark Interface Mode',
+                        _isDarkMode,
+                        (value) => setState(() => _isDarkMode = value),
+                      ),
+                      _buildToggleOption(
+                        Icons.notifications_active_rounded,
+                        'Push Notifications',
+                        _notificationsEnabled,
+                        (value) =>
+                            setState(() => _notificationsEnabled = value),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: AppDimensions.paddingL),
+                _buildSectionHeader('Account Support'),
+                const SizedBox(height: AppDimensions.paddingM),
+                Card(
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  elevation: 0,
+                  color: Theme.of(context).cardColor,
+                  child: Column(
+                    children: [
+                      _buildProfileOption(
+                        Icons.settings_rounded,
+                        'App Settings',
+                      ),
+                      _buildProfileOption(
+                        Icons.help_outline_rounded,
+                        'Help & Support Center',
+                      ),
+                      _buildProfileOption(
+                        Icons.verified_user_rounded,
+                        'Privacy Policy Agreement',
+                      ),
+                      const Divider(height: 1, indent: 16, endIndent: 16),
+                      _buildProfileOption(
+                        Icons.logout_rounded,
+                        'Sign Out Account',
+                        textColor: AppColors.error,
+                        showChevron: false,
+                        onTap: () async {
+                          await authProvider.signOut();
+                          if (mounted) {
+                            Navigator.pushReplacementNamed(
+                              context,
+                              AppRoutes.login,
+                            );
+                          }
+                        },
+                      ),
+                    ],
+                  ),
+                ),
+              ],
             ),
-            const SizedBox(height: AppDimensions.paddingL),
-
-            // Account Actions Card Block
-            _buildSectionHeader('Account Support'),
-            const SizedBox(height: AppDimensions.paddingM),
-            Card(
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-              elevation: 0,
-              color: Theme.of(context).cardColor,
-              child: Column(
-                children: [
-                  _buildProfileOption(Icons.settings_rounded, 'App Settings'),
-                  _buildProfileOption(
-                    Icons.help_outline_rounded,
-                    'Help & Support Center',
-                  ),
-                  _buildProfileOption(
-                    Icons.verified_user_rounded,
-                    'Privacy Policy Agreement',
-                  ),
-                  const Divider(height: 1, indent: 16, endIndent: 16),
-                  _buildProfileOption(
-                    Icons.logout_rounded,
-                    'Sign Out Account',
-                    textColor: AppColors.error,
-                    showChevron: false,
-                    onTap: () {
-                      Navigator.pushReplacementNamed(context, AppRoutes.login);
-                    },
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
+          );
+        },
       ),
     );
   }
 
-  // Row header builder
   Widget _buildSectionHeader(String heading) {
     return Align(
       alignment: Alignment.centerLeft,
@@ -159,7 +168,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  // Dashboard Rank & Progress Meter Component
   Widget _buildTierProgressCard() {
     return Container(
       padding: const EdgeInsets.all(AppDimensions.paddingL),
@@ -177,7 +185,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       child: Column(
         children: [
           Row(
-            mainAxisAlignment: MainAxisAlignment.center,
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Row(
                 children: const [
@@ -226,7 +234,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  // Horizontal Badges Scroller Component
   Widget _buildBadgesRow() {
     final List<Map<String, dynamic>> badges = [
       {
@@ -297,7 +304,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  // Clean Navigation ListTile Options Builder
   Widget _buildProfileOption(
     IconData icon,
     String title, {
@@ -326,7 +332,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  // Tappable Toggle Switch Line Builder
   Widget _buildToggleOption(
     IconData icon,
     String title,

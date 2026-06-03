@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../../../../core/constants/app_colors.dart';
-import '../../../../core/constants/app_strings.dart';
 import '../../../../core/constants/app_dimensions.dart';
+import '../../../../core/constants/app_strings.dart';
+import '../../../../core/providers/auth_provider.dart';
 import '../../../../core/widgets/custom_button.dart';
-import '../widgets/auth_text_field.dart';
-import '../widgets/social_button.dart';
 import '../../../../routes/app_routes.dart';
 
 class RegisterScreen extends StatefulWidget {
@@ -20,9 +20,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
-  bool _isPasswordVisible = false;
-  bool _isConfirmPasswordVisible = false;
-  bool _isLoading = false;
+  bool _obscurePassword = true;
+  bool _obscureConfirmPassword = true;
 
   @override
   void dispose() {
@@ -33,49 +32,25 @@ class _RegisterScreenState extends State<RegisterScreen> {
     super.dispose();
   }
 
-  String? _validateName(String? value) {
-    if (value == null || value.isEmpty) {
-      return AppStrings.nameRequired;
-    }
-    return null;
-  }
-
-  String? _validateEmail(String? value) {
-    if (value == null || value.isEmpty) {
-      return AppStrings.emailRequired;
-    }
-    final emailRegex = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
-    if (!emailRegex.hasMatch(value)) {
-      return AppStrings.invalidEmail;
-    }
-    return null;
-  }
-
-  String? _validatePassword(String? value) {
-    if (value == null || value.isEmpty) {
-      return AppStrings.passwordRequired;
-    }
-    if (value.length < 8) {
-      return AppStrings.passwordLength;
-    }
-    return null;
-  }
-
-  String? _validateConfirmPassword(String? value) {
-    if (value != _passwordController.text) {
-      return AppStrings.passwordsDoNotMatch;
-    }
-    return null;
-  }
-
   Future<void> _handleRegister() async {
-    if (_formKey.currentState?.validate() ?? false) {
-      setState(() => _isLoading = true);
-      await Future.delayed(const Duration(seconds: 2));
-      setState(() => _isLoading = false);
+    if (!_formKey.currentState!.validate()) return;
 
-      if (mounted) {
-        Navigator.pushReplacementNamed(context, AppRoutes.main);
+    final authProvider = context.read<AuthProvider>();
+    final success = await authProvider.signUp(
+      email: _emailController.text.trim(),
+      password: _passwordController.text,
+      fullName: _nameController.text.trim(),
+    );
+
+    if (success && mounted) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Account created successfully! Please login.'),
+            backgroundColor: Colors.green,
+          ),
+        );
+        Navigator.pushReplacementNamed(context, AppRoutes.login);
       }
     }
   }
@@ -83,154 +58,205 @@ class _RegisterScreenState extends State<RegisterScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.background,
       body: SafeArea(
         child: SingleChildScrollView(
-          child: Padding(
-            padding: const EdgeInsets.all(AppDimensions.paddingL),
-            child: Form(
-              key: _formKey,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  IconButton(
-                    onPressed: () => Navigator.pop(context),
-                    icon: const Icon(Icons.arrow_back_ios_new_rounded),
-                    padding: EdgeInsets.zero,
-                    alignment: Alignment.centerLeft,
+          padding: const EdgeInsets.all(AppDimensions.paddingL),
+          child: Form(
+            key: _formKey,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                const SizedBox(height: AppDimensions.paddingXL),
+
+                const Icon(
+                  Icons.person_add_rounded,
+                  size: 60,
+                  color: AppColors.primary,
+                ),
+                const SizedBox(height: AppDimensions.paddingM),
+                Text(
+                  AppStrings.createAccount,
+                  style: Theme.of(context).textTheme.headlineMedium,
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: AppDimensions.paddingS),
+                Text(
+                  AppStrings.joinCommunity,
+                  style: Theme.of(context).textTheme.bodyMedium,
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: AppDimensions.paddingXL),
+
+                TextFormField(
+                  controller: _nameController,
+                  decoration: const InputDecoration(
+                    labelText: AppStrings.fullName,
+                    hintText: AppStrings.fullNameHint,
+                    prefixIcon: Icon(Icons.person_outline),
                   ),
-                  const SizedBox(height: AppDimensions.paddingM),
-                  Text(
-                    AppStrings.createAccount,
-                    style: Theme.of(context).textTheme.headlineMedium,
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return AppStrings.nameRequired;
+                    }
+                    return null;
+                  },
+                ),
+                const SizedBox(height: AppDimensions.paddingM),
+
+                TextFormField(
+                  controller: _emailController,
+                  keyboardType: TextInputType.emailAddress,
+                  decoration: const InputDecoration(
+                    labelText: AppStrings.emailAddress,
+                    hintText: AppStrings.emailHint,
+                    prefixIcon: Icon(Icons.email_outlined),
                   ),
-                  const SizedBox(height: AppDimensions.paddingS),
-                  Text(
-                    AppStrings.joinCommunity,
-                    style: Theme.of(context).textTheme.bodyMedium,
-                  ),
-                  const SizedBox(height: AppDimensions.paddingXL),
-                  AuthTextField(
-                    label: AppStrings.fullName,
-                    hint: AppStrings.fullNameHint,
-                    controller: _nameController,
-                    validator: _validateName,
-                  ),
-                  const SizedBox(height: AppDimensions.paddingL),
-                  AuthTextField(
-                    label: AppStrings.emailAddress,
-                    hint: AppStrings.emailHint,
-                    controller: _emailController,
-                    keyboardType: TextInputType.emailAddress,
-                    validator: _validateEmail,
-                  ),
-                  const SizedBox(height: AppDimensions.paddingL),
-                  AuthTextField(
-                    label: AppStrings.password,
-                    hint: AppStrings.passwordHint,
-                    controller: _passwordController,
-                    obscureText: !_isPasswordVisible,
-                    validator: _validatePassword,
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return AppStrings.emailRequired;
+                    }
+                    if (!value.contains('@') || !value.contains('.')) {
+                      return AppStrings.invalidEmail;
+                    }
+                    return null;
+                  },
+                ),
+                const SizedBox(height: AppDimensions.paddingM),
+
+                TextFormField(
+                  controller: _passwordController,
+                  obscureText: _obscurePassword,
+                  decoration: InputDecoration(
+                    labelText: AppStrings.createPassword,
+                    prefixIcon: const Icon(Icons.lock_outline),
                     suffixIcon: IconButton(
                       icon: Icon(
-                        _isPasswordVisible
-                            ? Icons.visibility_outlined
-                            : Icons.visibility_off_outlined,
-                        color: AppColors.textLight,
+                        _obscurePassword
+                            ? Icons.visibility_off
+                            : Icons.visibility,
                       ),
-                      onPressed: () => setState(() => _isPasswordVisible = !_isPasswordVisible),
+                      onPressed: () {
+                        setState(() {
+                          _obscurePassword = !_obscurePassword;
+                        });
+                      },
                     ),
                   ),
-                  const SizedBox(height: AppDimensions.paddingL),
-                  const SizedBox(height: AppDimensions.paddingL),
-                  AuthTextField(
-                    label: AppStrings.confirmPassword,
-                    hint: AppStrings.passwordHint,
-                    controller: _confirmPasswordController,
-                    obscureText: !_isConfirmPasswordVisible,
-                    validator: _validateConfirmPassword,
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return AppStrings.passwordRequired;
+                    }
+                    if (value.length < 6) {
+                      return 'Password must be at least 6 characters';
+                    }
+                    return null;
+                  },
+                ),
+                const SizedBox(height: AppDimensions.paddingS),
+                Text(
+                  AppStrings.passwordRequirement,
+                  style: Theme.of(context).textTheme.bodySmall,
+                ),
+                const SizedBox(height: AppDimensions.paddingM),
+
+                TextFormField(
+                  controller: _confirmPasswordController,
+                  obscureText: _obscureConfirmPassword,
+                  decoration: InputDecoration(
+                    labelText: AppStrings.confirmPassword,
+                    prefixIcon: const Icon(Icons.lock_outline),
                     suffixIcon: IconButton(
                       icon: Icon(
-                        _isConfirmPasswordVisible
-                            ? Icons.visibility_outlined
-                            : Icons.visibility_off_outlined,
-                        color: AppColors.textLight,
+                        _obscureConfirmPassword
+                            ? Icons.visibility_off
+                            : Icons.visibility,
                       ),
-                      onPressed: () => setState(() => _isConfirmPasswordVisible = !_isConfirmPasswordVisible),
+                      onPressed: () {
+                        setState(() {
+                          _obscureConfirmPassword = !_obscureConfirmPassword;
+                        });
+                      },
                     ),
                   ),
-                  const SizedBox(height: AppDimensions.paddingXL),
-                  CustomButton(
-                    text: AppStrings.createAccountButton,
-                    onPressed: _handleRegister,
-                    isLoading: _isLoading,
-                  ),
-                  const SizedBox(height: AppDimensions.paddingL),
-                  Row(
-                    children: [
-                      const Expanded(child: Divider(color: AppColors.border)),
-                      Padding(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: AppDimensions.paddingM,
+                  validator: (value) {
+                    if (value != _passwordController.text) {
+                      return AppStrings.passwordsDoNotMatch;
+                    }
+                    return null;
+                  },
+                ),
+                const SizedBox(height: AppDimensions.paddingXL),
+
+                if (context.watch<AuthProvider>().errorMessage != null)
+                  Container(
+                    padding: const EdgeInsets.all(AppDimensions.paddingS),
+                    margin: const EdgeInsets.only(
+                      bottom: AppDimensions.paddingM,
+                    ),
+                    decoration: BoxDecoration(
+                      color: AppColors.error.withAlpha(25),
+                      borderRadius: BorderRadius.circular(
+                        AppDimensions.radiusS,
+                      ),
+                    ),
+                    child: Row(
+                      children: [
+                        const Icon(
+                          Icons.error_outline,
+                          color: AppColors.error,
+                          size: 20,
                         ),
-                        child: Text(
-                          AppStrings.orContinueWith,
-                          style: TextStyle(
-                            fontSize: AppDimensions.fontXS,
-                            color: AppColors.textSecondary,
+                        const SizedBox(width: AppDimensions.paddingS),
+                        Expanded(
+                          child: Text(
+                            context.watch<AuthProvider>().errorMessage!,
+                            style: const TextStyle(
+                              color: AppColors.error,
+                              fontSize: AppDimensions.fontS,
+                            ),
                           ),
                         ),
-                      ),
-                      const Expanded(child: Divider(color: AppColors.border)),
-                    ],
+                      ],
+                    ),
                   ),
-                  const SizedBox(height: AppDimensions.paddingL),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      SocialButton(
-                        icon: Icons.g_mobiledata,
-                        label: AppStrings.google,
-                        onPressed: () {},
-                      ),
-                      const SizedBox(width: AppDimensions.paddingM),
-                      SocialButton(
-                        icon: Icons.apple,
-                        label: AppStrings.apple,
-                        onPressed: () {},
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: AppDimensions.paddingXL),
-                  // Sign In Link
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      const Text(
-                        "Already have an account? ",
+
+                Consumer<AuthProvider>(
+                  builder: (context, authProvider, child) {
+                    return CustomButton(
+                      text: AppStrings.createAccountButton,
+                      onPressed: _handleRegister,
+                      isLoading: authProvider.isLoading,
+                    );
+                  },
+                ),
+                const SizedBox(height: AppDimensions.paddingM),
+
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      'Already have an account?',
+                      style: Theme.of(context).textTheme.bodyMedium,
+                    ),
+                    TextButton(
+                      onPressed: () {
+                        Navigator.pushReplacementNamed(
+                          context,
+                          AppRoutes.login,
+                        );
+                      },
+                      child: const Text(
+                        'Sign In',
                         style: TextStyle(
-                          color: AppColors.textSecondary,
-                          fontSize: AppDimensions.fontS,
+                          color: AppColors.primary,
+                          fontWeight: FontWeight.bold,
                         ),
                       ),
-                      GestureDetector(
-                        onTap: () {
-                          Navigator.pop(context);
-                        },
-                        child: const Text(
-                          AppStrings.signIn,
-                          style: TextStyle(
-                            color: AppColors.primary,
-                            fontWeight: FontWeight.w600,
-                            fontSize: AppDimensions.fontS,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: AppDimensions.paddingXL),
-                ],
-              ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: AppDimensions.paddingXL),
+              ],
             ),
           ),
         ),

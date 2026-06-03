@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_strings.dart';
 import '../../../../core/constants/app_dimensions.dart';
 import '../../../../core/widgets/custom_button.dart';
+import '../../../../core/providers/auth_provider.dart';
 import '../../../../routes/app_routes.dart';
 
 class HomeScreen extends StatelessWidget {
@@ -14,7 +16,6 @@ class HomeScreen extends StatelessWidget {
       appBar: AppBar(
         title: Row(
           children: [
-            sizedbox(height:2),
             CircleAvatar(
               radius: 18,
               backgroundColor: AppColors.primary.withAlpha(40),
@@ -25,19 +26,30 @@ class HomeScreen extends StatelessWidget {
               ),
             ),
             const SizedBox(width: AppDimensions.paddingS),
-            const Text(AppStrings.skillUp),
+            Consumer<AuthProvider>(
+              builder: (context, authProvider, child) {
+                final email = authProvider.currentUser?.email ?? 'User';
+                final displayName = email.split('@')[0];
+                return Text(
+                  'Hi, $displayName',
+                  style: const TextStyle(fontSize: 16),
+                );
+              },
+            ),
           ],
         ),
         actions: [
           IconButton(
             icon: const Icon(Icons.logout_rounded),
-            onPressed: () {
-              Navigator.pushReplacementNamed(context, AppRoutes.login);
+            onPressed: () async {
+              await context.read<AuthProvider>().signOut();
+              if (context.mounted) {
+                Navigator.pushReplacementNamed(context, AppRoutes.login);
+              }
             },
           ),
         ],
       ),
-      // SingleChildScrollView prevents layout crashes/overflows on smaller screens
       body: SingleChildScrollView(
         child: Padding(
           padding: const EdgeInsets.all(AppDimensions.paddingL),
@@ -45,8 +57,6 @@ class HomeScreen extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               const SizedBox(height: AppDimensions.paddingM),
-
-              // Welcome Hero Illustration Container
               Container(
                 padding: const EdgeInsets.all(AppDimensions.paddingXL),
                 decoration: BoxDecoration(
@@ -60,8 +70,6 @@ class HomeScreen extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: AppDimensions.paddingXL),
-
-              // Greeting Text
               Text(
                 AppStrings.hello,
                 style: Theme.of(context).textTheme.headlineMedium?.copyWith(
@@ -74,10 +82,7 @@ class HomeScreen extends StatelessWidget {
                 textAlign: TextAlign.center,
                 style: Theme.of(context).textTheme.bodyLarge,
               ),
-
               const SizedBox(height: AppDimensions.paddingXL),
-
-              // Enhancement 1: Quick Progress/Stats Row
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
@@ -94,10 +99,7 @@ class HomeScreen extends StatelessWidget {
                   ),
                 ],
               ),
-
               const SizedBox(height: AppDimensions.paddingXL * 1.5),
-
-              // Enhancement 2: Section Title for Popular Topics
               Align(
                 alignment: Alignment.centerLeft,
                 child: Text(
@@ -108,8 +110,6 @@ class HomeScreen extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: AppDimensions.paddingM),
-
-              // Horizontal Topics List
               SizedBox(
                 height: 115,
                 child: ListView(
@@ -137,10 +137,7 @@ class HomeScreen extends StatelessWidget {
                   ],
                 ),
               ),
-
               const SizedBox(height: AppDimensions.paddingXL * 1.5),
-
-              // Primary CTA Button
               CustomButton(
                 text: 'Continue Learning',
                 onPressed: () {
@@ -154,7 +151,6 @@ class HomeScreen extends StatelessWidget {
     );
   }
 
-  // Helper builder for dynamic statistic chips
   Widget _buildStatCard(BuildContext context, String value, String label) {
     return Container(
       padding: const EdgeInsets.symmetric(vertical: AppDimensions.paddingM),
@@ -184,7 +180,6 @@ class HomeScreen extends StatelessWidget {
     );
   }
 
-  // Helper builder for horizontal topic cards
   Widget _buildTopicCard(
     BuildContext context,
     IconData icon,

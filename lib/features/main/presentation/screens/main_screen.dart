@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../../core/constants/app_colors.dart';
-import '../../../../features/home/presentation/screens/home_screen.dart';
+import '../../../home/presentation/screens/home_screen.dart';
 import 'courses_screen.dart';
 import 'profile_screen.dart';
 
