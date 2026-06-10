@@ -16,6 +16,7 @@ class HomeScreen extends StatelessWidget {
       backgroundColor: Colors.white,
       body: CustomScrollView(
         slivers: [
+          
           // Main Content
           SliverPadding(
             padding: const EdgeInsets.all(AppDimensions.paddingL),
@@ -68,7 +69,14 @@ class HomeScreen extends StatelessWidget {
             children: [
               Container(
                 padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(color: Colors.white.withAlpha(30)),
+                decoration: BoxDecoration(
+                  color: Colors.white.withAlpha(30),
+                ),
+                child: const Icon(
+                  Icons.flag_rounded,
+                  color: Colors.white,
+                  size: 26,
+                ),
               ),
               const SizedBox(width: 12),
               const Expanded(
