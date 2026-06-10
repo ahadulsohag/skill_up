@@ -71,7 +71,6 @@ class HomeScreen extends StatelessWidget {
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
                   color: Colors.white.withAlpha(30),
-                  borderRadius: BorderRadius.circular(12),
                 ),
                 child: const Icon(
                   Icons.flag_rounded,
