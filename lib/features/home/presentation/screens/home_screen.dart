@@ -50,7 +50,6 @@ class HomeScreen extends StatelessWidget {
 
   Widget _buildCurrentMissionCard(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(AppDimensions.paddingL),
       decoration: BoxDecoration(
         gradient: AppColors.primaryGradient,
         borderRadius: BorderRadius.circular(24),
