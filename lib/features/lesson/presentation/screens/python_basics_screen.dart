@@ -2,506 +2,313 @@ import 'package:flutter/material.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_dimensions.dart';
 import '../../../../core/widgets/custom_button.dart';
+import 'package:skill_up/features/lesson/presentation/screens/variable_lesson_screen.dart';
 
-class PythonBasicsScreen extends StatefulWidget {
+class PythonBasicsScreen extends StatelessWidget {
   const PythonBasicsScreen({super.key});
-
-  @override
-  State<PythonBasicsScreen> createState() => _PythonBasicsScreenState();
-}
-
-class _PythonBasicsScreenState extends State<PythonBasicsScreen> {
-  // State variables for interactive quiz elements
-  int? _selectedAnswerIndex;
-  bool _quizSubmitted = false;
-  bool _codeExecuted = false;
-
-  final List<String> _quizOptions = [
-    'compile("Hello, SkillUp!")',
-    'print("Hello, SkillUp!")',
-    'echo("Hello, SkillUp!")',
-    'system.out.print("Hello, SkillUp!")',
-  ];
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Stack(
-        children: [
-          CustomScrollView(
-            physics: const BouncingScrollPhysics(),
-            slivers: [
-              // Rich Header with Slivers
-              SliverAppBar(
-                expandedHeight: 200.0,
-                floating: false,
-                pinned: true,
-                elevation: 0,
-                flexibleSpace: FlexibleSpaceBar(
-                  title: const Text(
-                    'Python Basics',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
-                    ),
+      backgroundColor: Colors.white,
+      body: CustomScrollView(
+        slivers: [
+          // Hero Header
+          SliverAppBar(
+            expandedHeight: 280,
+            floating: false,
+            pinned: true,
+            backgroundColor: Colors.white,
+            elevation: 0,
+            flexibleSpace: FlexibleSpaceBar(
+              background: Container(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [AppColors.primary, AppColors.primaryLight],
                   ),
-                  background: Container(
-                    decoration: const BoxDecoration(
-                      gradient: AppColors.primaryGradient,
-                    ),
-                    child: Center(
-                      child: Icon(
-                        Icons.code_rounded,
-                        size: 80,
-                        color: Colors.white.withAlpha(51),
-                      ),
+                ),
+                child: SafeArea(
+                  child: Padding(
+                    padding: const EdgeInsets.all(AppDimensions.paddingL),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: [
+                        const Icon(
+                          Icons.code_rounded,
+                          size: 50,
+                          color: Colors.white,
+                        ),
+                        const SizedBox(height: 16),
+                        const Text(
+                          'Python Basics',
+                          style: TextStyle(
+                            fontSize: 32,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          'Master the foundational logic of the world\'s most versatile programming language.',
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: Colors.white.withOpacity(0.9),
+                            height: 1.4,
+                          ),
+                        ),
+                        const SizedBox(height: 20),
+                        Row(
+                          children: [
+                            _buildInfoChip(
+                              Icons.access_time_rounded,
+                              '4.5h',
+                              'ESTIMATED TIME',
+                            ),
+                            const SizedBox(width: 16),
+                            _buildInfoChip(
+                              Icons.stars_rounded,
+                              '240 XP',
+                              'REWARD POINTS',
+                            ),
+                          ],
+                        ),
+                      ],
                     ),
                   ),
                 ),
               ),
+            ),
+          ),
 
-              // Interactive Lesson Body Content
-              SliverPadding(
-                padding: const EdgeInsets.fromLTRB(
-                  AppDimensions.paddingL,
-                  AppDimensions.paddingL,
-                  AppDimensions.paddingL,
-                  100, // Bottom padding cushion for the static overlay button
+          // Course Curriculum Section
+          SliverPadding(
+            padding: const EdgeInsets.all(AppDimensions.paddingL),
+            sliver: SliverList(
+              delegate: SliverChildListDelegate([
+                const SizedBox(height: AppDimensions.paddingM),
+
+                // Curriculum Header
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Text(
+                      'Course Curriculum',
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.black87,
+                      ),
+                    ),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 6,
+                      ),
+                      decoration: BoxDecoration(
+                        color: AppColors.primary.withAlpha(20),
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: const Text(
+                        '8 Lessons',
+                        style: TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
+                          color: AppColors.primary,
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
-                sliver: SliverList(
-                  delegate: SliverChildListDelegate([
-                    _buildSectionTitle(context, 'Introduction'),
-                    const Text(
-                      'Python is a high-level, general-purpose programming language. Its design philosophy emphasizes code readability with the use of significant indentation.',
-                      style: TextStyle(
-                        fontSize: AppDimensions.fontM,
-                        height: 1.5,
+                const SizedBox(height: AppDimensions.paddingL),
+
+                // Lesson List
+                _buildLessonItem(
+                  context,
+                  'Intro to Variables',
+                  'Chapter 1 • 12 mins',
+                  1,
+                  true,
+                ),
+                _buildLessonItem(
+                  context,
+                  'Loops & Logic',
+                  'Chapter 2 • 18 mins',
+                  2,
+                  false,
+                ),
+                _buildLessonItem(
+                  context,
+                  'List Comprehension',
+                  'Chapter 3 • 15 mins',
+                  3,
+                  false,
+                ),
+                _buildLessonItem(
+                  context,
+                  'Functional Structures',
+                  'Chapter 4 • 22 mins',
+                  4,
+                  false,
+                ),
+                _buildLessonItem(
+                  context,
+                  'Error Handling',
+                  'Chapter 5 • 10 mins',
+                  5,
+                  false,
+                ),
+
+                const SizedBox(height: AppDimensions.paddingXL),
+
+                // Resume Button
+                CustomButton(
+                  text: 'Resume Course',
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const VariablesLessonScreen(),
                       ),
-                    ),
-                    const SizedBox(height: AppDimensions.paddingL),
+                    );
+                  },
+                  prefix: const Icon(
+                    Icons.play_arrow_rounded,
+                    color: Colors.white,
+                  ),
+                ),
 
-                    _buildSectionTitle(context, 'Key Features'),
-                    _buildBulletPoint('Interpreted & interactive runtime'),
-                    _buildBulletPoint(
-                      'Clean syntax that reads closely to plain English',
-                    ),
-                    _buildBulletPoint(
-                      'Dynamically typed variable declarations',
-                    ),
-                    _buildBulletPoint('Extensive standard libraries ecosystem'),
-                    const SizedBox(height: AppDimensions.paddingL),
+                const SizedBox(height: AppDimensions.paddingXL),
+              ]),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 
-                    _buildSectionTitle(context, 'First Program Playground'),
-                    const Text(
-                      'Try running your first lines of real Python code using the simulation module below:',
-                      style: TextStyle(fontSize: AppDimensions.fontM),
-                    ),
-                    const SizedBox(height: AppDimensions.paddingM),
-
-                    // Interactive Code Console Panel
-                    _buildCodePlayground(context, 'print("Hello, SkillUp!")'),
-                    const SizedBox(height: AppDimensions.paddingXL),
-
-                    _buildSectionTitle(context, 'Quick Knowledge Check'),
-                    const Text(
-                      'Which built-in Python function is utilized to output messages directly to your screen?',
-                      style: TextStyle(
-                        fontSize: AppDimensions.fontM,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                    const SizedBox(height: AppDimensions.paddingM),
-
-                    // Tappable Quiz Blocks
-                    ...List.generate(
-                      _quizOptions.length,
-                      (index) => _buildQuizOption(index),
-                    ),
-
-                    if (_quizSubmitted) ...[
-                      const SizedBox(height: AppDimensions.paddingM),
-                      _buildQuizFeedbackBlock(),
-                    ],
-                  ]),
+  Widget _buildInfoChip(IconData icon, String value, String label) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      decoration: BoxDecoration(
+        color: Colors.white.withAlpha(30),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Row(
+        children: [
+          Icon(icon, size: 16, color: Colors.white),
+          const SizedBox(width: 8),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                value,
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 14,
+                ),
+              ),
+              Text(
+                label,
+                style: TextStyle(
+                  color: Colors.white.withOpacity(0.8),
+                  fontSize: 10,
                 ),
               ),
             ],
           ),
-
-          // Persistent Floating Progress Bar Anchor
-          Positioned(
-            top: MediaQuery.of(context).padding.top + kToolbarHeight,
-            left: 0,
-            right: 0,
-            child: LinearProgressIndicator(
-              value: _quizSubmitted && _codeExecuted
-                  ? 1.0
-                  : (_quizSubmitted || _codeExecuted ? 0.6 : 0.2),
-              backgroundColor: Colors.white24,
-              valueColor: const AlwaysStoppedAnimation<Color>(
-                AppColors.secondary,
-              ),
-              minHeight: 4,
-            ),
-          ),
-
-          // Floating Lesson Complete Action Button Fixed to Screen Bottom
-          Positioned(
-            bottom: 0,
-            left: 0,
-            right: 0,
-            child: Container(
-              padding: const EdgeInsets.all(AppDimensions.paddingL),
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                  colors: [
-                    Theme.of(context).scaffoldBackgroundColor.withAlpha(0),
-                    Theme.of(context).scaffoldBackgroundColor,
-                  ],
-                ),
-              ),
-              child: CustomButton(
-                text: 'Complete Lesson',
-                onPressed: () => Navigator.pop(context),
-              ),
-            ),
-          ),
         ],
       ),
     );
   }
 
-  // Builder for Title Headers
-  Widget _buildSectionTitle(BuildContext context, String title) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: AppDimensions.paddingS),
-      child: Text(
-        title,
-        style: Theme.of(context).textTheme.titleLarge?.copyWith(
-          color: AppColors.primary,
-          fontWeight: FontWeight.bold,
-        ),
-      ),
-    );
-  }
-
-  // Builder for Rich Checkmarks
-  Widget _buildBulletPoint(String text) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: AppDimensions.paddingS),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Icon(
-            Icons.check_circle_outline_rounded,
-            size: 18,
-            color: AppColors.primary,
-          ),
-          const SizedBox(width: AppDimensions.paddingS),
-          Expanded(
-            child: Text(
-              text,
-              style: const TextStyle(fontSize: AppDimensions.fontM),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  // Interactive Code Sandbox Component
-  Widget _buildCodePlayground(BuildContext context, String codeSnippet) {
+  Widget _buildLessonItem(
+    BuildContext context,
+    String title,
+    String subtitle,
+    int chapterNumber,
+    bool isCompleted,
+  ) {
     return Container(
+      margin: const EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(
-        color: Colors.grey[950],
-        borderRadius: BorderRadius.circular(12),
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Colors.grey.shade200, width: 1),
         boxShadow: [
           BoxShadow(
-            color: Colors.black12,
+            color: Colors.grey.withAlpha(15),
             blurRadius: 8,
-            offset: const Offset(0, 4),
+            offset: const Offset(0, 2),
           ),
         ],
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          // Console Header Mac-Style Structure
-          Container(
-            padding: const EdgeInsets.symmetric(
-              horizontal: AppDimensions.paddingM,
-              vertical: AppDimensions.paddingS,
-            ),
-            decoration: BoxDecoration(
-              color: Colors.grey[900],
-              borderRadius: const BorderRadius.only(
-                topLeft: Radius.circular(12),
-                topRight: Radius.circular(12),
-              ),
-            ),
-            child: Row(
-              children: [
-                Row(
-                  children: List.generate(
-                    3,
-                    (index) => Container(
-                      margin: const EdgeInsets.only(right: 6),
-                      width: 10,
-                      height: 10,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: index == 0
-                            ? Colors.redAccent
-                            : index == 1
-                            ? Colors.amberAccent
-                            : Colors.greenAccent,
-                      ),
-                    ),
-                  ),
+      child: ListTile(
+        contentPadding: const EdgeInsets.all(12),
+        leading: Container(
+          width: 48,
+          height: 48,
+          decoration: BoxDecoration(
+            gradient: isCompleted ? AppColors.primaryGradient : null,
+            color: isCompleted ? null : AppColors.primary.withAlpha(15),
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Icon(
+            isCompleted ? Icons.check_rounded : Icons.play_arrow_rounded,
+            color: isCompleted ? Colors.white : AppColors.primary,
+            size: 24,
+          ),
+        ),
+        title: Text(
+          title,
+          style: const TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.w600,
+            color: Colors.black87,
+          ),
+        ),
+        subtitle: Text(
+          subtitle,
+          style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+        ),
+        trailing: isCompleted
+            ? Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(
+                  color: Colors.green.withAlpha(20),
+                  borderRadius: BorderRadius.circular(12),
                 ),
-                const SizedBox(width: AppDimensions.paddingM),
-                Text(
-                  'main.py',
+                child: const Text(
+                  'Completed',
                   style: TextStyle(
-                    color: Colors.grey[400],
-                    fontSize: 12,
-                    fontFamily: 'monospace',
+                    fontSize: 11,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.green,
                   ),
                 ),
-                const Spacer(),
-                IconButton(
-                  icon: const Icon(
-                    Icons.copy_rounded,
-                    size: 16,
-                    color: Colors.grey,
-                  ),
-                  onPressed: () {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('Code copied to clipboard!'),
-                        duration: Duration(seconds: 1),
-                      ),
-                    );
-                  },
-                ),
-              ],
-            ),
-          ),
-          // Code block view
-          Padding(
-            padding: const EdgeInsets.all(AppDimensions.paddingL),
-            child: Text(
-              codeSnippet,
-              style: const TextStyle(
-                color: AppColors.secondary,
-                fontFamily: 'monospace',
-                fontSize: AppDimensions.fontM,
-                fontWeight: FontWeight.w500,
+              )
+            : const Icon(Icons.lock_open_rounded, color: Colors.grey, size: 20),
+        onTap: () {
+          if (isCompleted || chapterNumber == 1) {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => const VariablesLessonScreen(),
               ),
-            ),
-          ),
-          // Execute interactive trigger panel
-          Divider(color: Colors.grey[900], height: 1),
-          Padding(
-            padding: const EdgeInsets.all(AppDimensions.paddingM),
-            child: Row(
-              children: [
-                TextButton.icon(
-                  onPressed: () => setState(() => _codeExecuted = true),
-                  icon: const Icon(
-                    Icons.play_arrow_rounded,
-                    color: Colors.greenAccent,
-                  ),
-                  label: const Text(
-                    'Run Code',
-                    style: TextStyle(
-                      color: Colors.greenAccent,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ),
-                if (_codeExecuted) ...[
-                  const Spacer(),
-                  IconButton(
-                    icon: const Icon(
-                      Icons.refresh_rounded,
-                      size: 18,
-                      color: Colors.grey,
-                    ),
-                    onPressed: () => setState(() => _codeExecuted = false),
-                  ),
-                ],
-              ],
-            ),
-          ),
-          // Interactive Terminal Emulation Screen Console
-          if (_codeExecuted)
-            Container(
-              padding: const EdgeInsets.all(AppDimensions.paddingM),
-              decoration: BoxDecoration(
-                color: Colors.black,
-                borderRadius: const BorderRadius.only(
-                  bottomLeft: Radius.circular(12),
-                  bottomRight: Radius.circular(12),
-                ),
-                border: Border(top: BorderSide(color: Colors.grey[900]!)),
+            );
+          } else {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('Complete previous lessons first!'),
+                duration: Duration(seconds: 2),
               ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Terminal Output:',
-                    style: TextStyle(
-                      color: Colors.grey[500],
-                      fontSize: 11,
-                      fontFamily: 'monospace',
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  const Text(
-                    'Hello, SkillUp!',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontFamily: 'monospace',
-                      fontSize: AppDimensions.fontM,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-        ],
+            );
+          }
+        },
       ),
     );
-  }
-
-  // Quiz Option Selector Cards
-  Widget _buildQuizOption(int index) {
-    final isSelected = _selectedAnswerIndex == index;
-    Color cardBorderColor = Colors.grey.withAlpha(40);
-    Color cardBgColor = Theme.of(context).cardColor;
-
-    if (isSelected) {
-      cardBorderColor = AppColors.primary;
-      cardBgColor = AppColors.primary.withAlpha(15);
-    }
-    if (_quizSubmitted) {
-      if (index == 1) {
-        // 1 is correct index
-        cardBorderColor = Colors.green;
-        cardBgColor = Colors.green.withAlpha(20);
-      } else if (isSelected) {
-        cardBorderColor = Colors.red;
-        cardBgColor = Colors.red.withAlpha(20);
-      }
-    }
-
-    return AnimatedContainer(
-      duration: const Duration(milliseconds: 200),
-      margin: const EdgeInsets.only(bottom: AppDimensions.paddingS),
-      child: Card(
-        elevation: 0,
-        color: cardBgColor,
-        shape: RoundedRectangleBorder(
-          side: BorderSide(
-            color: cardBorderColor,
-            width: isSelected || _quizSubmitted ? 2 : 1,
-          ),
-          borderRadius: BorderRadius.circular(10),
-        ),
-        child: InkWell(
-          borderRadius: BorderRadius.circular(10),
-          onTap: _quizSubmitted
-              ? null
-              : () => setState(() => _selectedAnswerIndex = index),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(
-              horizontal: AppDimensions.paddingM,
-              vertical: AppDimensions.paddingM,
-            ),
-            child: Row(
-              children: [
-                Expanded(
-                  child: Text(
-                    _quizOptions[index],
-                    style: const TextStyle(
-                      fontFamily: 'monospace',
-                      fontSize: AppDimensions.fontM - 1,
-                    ),
-                  ),
-                ),
-                if (_quizSubmitted && index == 1)
-                  const Icon(Icons.check_circle, color: Colors.green)
-                else if (_quizSubmitted && isSelected && index != 1)
-                  const Icon(Icons.cancel, color: Colors.red)
-                else
-                  Radio<int>(
-                    value: index,
-                    groupValue: _selectedAnswerIndex,
-                    activeColor: AppColors.primary,
-                    onChanged: _quizSubmitted
-                        ? null
-                        : (val) => setState(() => _selectedAnswerIndex = val),
-                  ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  // Conditional feedback block validation
-  Widget _buildQuizFeedbackBlock() {
-    final isCorrect = _selectedAnswerIndex == 1;
-    return Container(
-      padding: const EdgeInsets.all(AppDimensions.paddingM),
-      decoration: BoxDecoration(
-        color: isCorrect
-            ? Colors.green.withAlpha(25)
-            : Colors.red.withAlpha(25),
-        borderRadius: BorderRadius.circular(10),
-      ),
-      child: Row(
-        children: [
-          Icon(
-            isCorrect
-                ? Icons.check_circle_rounded
-                : Icons.error_outline_rounded,
-            color: isCorrect ? Colors.green : Colors.red,
-          ),
-          const SizedBox(width: AppDimensions.paddingM),
-          Expanded(
-            child: Text(
-              isCorrect
-                  ? 'Awesome job! print() outputs raw strings to the system console terminal.'
-                  : 'Not quite. Remember that Python keeps syntax simple with lowercase functions!',
-              style: TextStyle(
-                color: isCorrect ? Colors.green[800] : Colors.red[800],
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-          ),
-          if (!isCorrect)
-            TextButton(
-              onPressed: () => setState(() {
-                _quizSubmitted = false;
-                _selectedAnswerIndex = null;
-              }),
-              child: const Text('Retry'),
-            ),
-        ],
-      ),
-    );
-  }
-
-  // Trigger quiz validation logic cleanly inside widget frame lifecycle tracking
-  @override
-  void didUpdateWidget(covariant PythonBasicsScreen oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (_selectedAnswerIndex != null && !_quizSubmitted) {
-      setState(() => _quizSubmitted = true);
-    }
   }
 }
