@@ -53,7 +53,7 @@ class HomeScreen extends StatelessWidget {
       padding: const EdgeInsets.all(AppDimensions.paddingL),
       decoration: BoxDecoration(
         gradient: AppColors.primaryGradient,
-        borderRadius: BorderRadius.circular(24),
+        borderRadius: BorderRadius.circular(26),
         boxShadow: [
           BoxShadow(
             color: AppColors.primary.withAlpha(30),
@@ -71,12 +71,11 @@ class HomeScreen extends StatelessWidget {
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
                   color: Colors.white.withAlpha(30),
-                  borderRadius: BorderRadius.circular(12),
                 ),
                 child: const Icon(
                   Icons.flag_rounded,
                   color: Colors.white,
-                  size: 24,
+                  size: 26,
                 ),
               ),
               const SizedBox(width: 12),
