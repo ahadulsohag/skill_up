@@ -13,207 +13,461 @@ class HomeScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Row(
-          children: [
-            CircleAvatar(
-              radius: 18,
-              backgroundColor: AppColors.primary.withAlpha(40),
-              child: const Icon(
-                Icons.person,
-                color: AppColors.primary,
-                size: 20,
-              ),
+      backgroundColor: Colors.white,
+      body: CustomScrollView(
+        slivers: [
+          
+          // Main Content
+          SliverPadding(
+            padding: const EdgeInsets.all(AppDimensions.paddingL),
+            sliver: SliverList(
+              delegate: SliverChildListDelegate([
+                // Current Mission Section
+                _buildCurrentMissionCard(context),
+                const SizedBox(height: AppDimensions.paddingXL),
+
+                // Your Path Section
+                _buildYourPathSection(context),
+                const SizedBox(height: AppDimensions.paddingXL),
+
+                // Featured Course
+                _buildFeaturedCourseCard(context),
+                const SizedBox(height: AppDimensions.paddingXL),
+
+                // Popular Skills Section
+                _buildPopularSkillsSection(context),
+                const SizedBox(height: AppDimensions.paddingXL),
+
+                // Bottom Navigation Spacing
+                const SizedBox(height: 80),
+              ]),
             ),
-            const SizedBox(width: AppDimensions.paddingS),
-            Consumer<AuthProvider>(
-              builder: (context, authProvider, child) {
-                final email = authProvider.currentUser?.email ?? 'User';
-                final displayName = email.split('@')[0];
-                return Text(
-                  'Hi, $displayName',
-                  style: const TextStyle(fontSize: 16),
-                );
-              },
-            ),
-          ],
-        ),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.logout_rounded),
-            onPressed: () async {
-              await context.read<AuthProvider>().signOut();
-              if (context.mounted) {
-                Navigator.pushReplacementNamed(context, AppRoutes.login);
-              }
-            },
           ),
         ],
       ),
-      body: SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.all(AppDimensions.paddingL),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.center,
+    );
+  }
+
+  Widget _buildCurrentMissionCard(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(AppDimensions.paddingL),
+      decoration: BoxDecoration(
+        gradient: AppColors.primaryGradient,
+        borderRadius: BorderRadius.circular(24),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.primary.withAlpha(30),
+            blurRadius: 20,
+            offset: const Offset(0, 8),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
             children: [
-              const SizedBox(height: AppDimensions.paddingM),
               Container(
-                padding: const EdgeInsets.all(AppDimensions.paddingXL),
+                padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: AppColors.primary.withAlpha(25),
-                  shape: BoxShape.circle,
+                  color: Colors.white.withAlpha(30),
+                  borderRadius: BorderRadius.circular(12),
                 ),
                 child: const Icon(
-                  Icons.rocket_launch_rounded,
-                  size: 80,
-                  color: AppColors.primary,
+                  Icons.flag_rounded,
+                  color: Colors.white,
+                  size: 24,
                 ),
               ),
-              const SizedBox(height: AppDimensions.paddingXL),
-              Text(
-                AppStrings.hello,
-                style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              const SizedBox(height: AppDimensions.paddingS),
-              Text(
-                AppStrings.readyToLearn,
-                textAlign: TextAlign.center,
-                style: Theme.of(context).textTheme.bodyLarge,
-              ),
-              const SizedBox(height: AppDimensions.paddingXL),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: [
-                  Expanded(
-                    child: _buildStatCard(context, '2', 'Courses\nActive'),
-                  ),
-                  const SizedBox(width: AppDimensions.paddingS),
-                  Expanded(
-                    child: _buildStatCard(context, '45%', 'Overall\nProgress'),
-                  ),
-                  const SizedBox(width: AppDimensions.paddingS),
-                  Expanded(
-                    child: _buildStatCard(context, '5d', 'Streak\nDays'),
-                  ),
-                ],
-              ),
-              const SizedBox(height: AppDimensions.paddingXL * 1.5),
-              Align(
-                alignment: Alignment.centerLeft,
+              const SizedBox(width: 12),
+              const Expanded(
                 child: Text(
-                  'Popular Topics for you',
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
+                  'CURRENT MISSION',
+                  style: TextStyle(
+                    color: Colors.white70,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                    letterSpacing: 1,
                   ),
                 ),
               ),
-              const SizedBox(height: AppDimensions.paddingM),
-              SizedBox(
-                height: 115,
-                child: ListView(
-                  scrollDirection: Axis.horizontal,
-                  physics: const BouncingScrollPhysics(),
+            ],
+          ),
+          const SizedBox(height: 16),
+          const Text(
+            'Keep going! You\'re 70% through\nPython Basics.',
+            style: TextStyle(
+              color: Colors.white,
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          const SizedBox(height: 20),
+          Row(
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    _buildTopicCard(
-                      context,
-                      Icons.code_rounded,
-                      'Python',
-                      AppRoutes.pythonBasics,
+                    const Text(
+                      'Course Completion',
+                      style: TextStyle(color: Colors.white70, fontSize: 12),
                     ),
-                    _buildTopicCard(
-                      context,
-                      Icons.html_rounded,
-                      'Web Dev',
-                      AppRoutes.pythonBasics,
-                    ),
-                    _buildTopicCard(
-                      context,
-                      Icons.storage_rounded,
-                      'SQL Data',
-                      AppRoutes.pythonBasics,
+                    const SizedBox(height: 8),
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(10),
+                      child: LinearProgressIndicator(
+                        value: 0.7,
+                        backgroundColor: Colors.white.withAlpha(50),
+                        valueColor: const AlwaysStoppedAnimation<Color>(
+                          Colors.white,
+                        ),
+                        minHeight: 8,
+                      ),
                     ),
                   ],
                 ),
               ),
-              const SizedBox(height: AppDimensions.paddingXL * 1.5),
-              CustomButton(
-                text: 'Continue Learning',
-                onPressed: () {
-                  Navigator.pushNamed(context, AppRoutes.pythonBasics);
-                },
+              const SizedBox(width: 16),
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 8,
+                ),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: const Text(
+                  '70%',
+                  style: TextStyle(
+                    color: AppColors.primary,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 14,
+                  ),
+                ),
               ),
             ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildStatCard(BuildContext context, String value, String label) {
-    return Container(
-      padding: const EdgeInsets.symmetric(vertical: AppDimensions.paddingM),
-      decoration: BoxDecoration(
-        color: Colors.grey.withAlpha(15),
-        borderRadius: BorderRadius.circular(AppDimensions.paddingM),
-      ),
-      child: Column(
-        children: [
-          Text(
-            value,
-            style: Theme.of(context).textTheme.titleLarge?.copyWith(
-              color: AppColors.primary,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            label,
-            textAlign: TextAlign.center,
-            style: Theme.of(
-              context,
-            ).textTheme.bodySmall?.copyWith(color: Colors.grey[600]),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildTopicCard(
-    BuildContext context,
-    IconData icon,
-    String title,
-    String route,
-  ) {
-    return GestureDetector(
-      onTap: () => Navigator.pushNamed(context, route),
-      child: Container(
-        width: 105,
-        margin: const EdgeInsets.only(right: AppDimensions.paddingM),
-        padding: const EdgeInsets.all(AppDimensions.paddingM),
-        decoration: BoxDecoration(
-          color: Theme.of(context).cardColor,
-          border: Border.all(color: Colors.grey.withAlpha(30)),
-          borderRadius: BorderRadius.circular(AppDimensions.paddingM),
+  Widget _buildYourPathSection(BuildContext context) {
+    final List<Map<String, dynamic>> topics = [
+      {
+        'name': 'Python',
+        'icon': Icons.code_rounded,
+        'color': AppColors.primary,
+      },
+      {
+        'name': 'C++',
+        'icon': Icons.code_off_rounded,
+        'color': const Color(0xFFE74C3C),
+      },
+      {
+        'name': 'Java',
+        'icon': Icons.coffee_rounded,
+        'color': const Color(0xFFF39C12),
+      },
+      {
+        'name': 'Flutter',
+        'icon': Icons.phone_android_rounded,
+        'color': const Color(0xFF3498DB),
+      },
+    ];
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          'Your Path',
+          style: TextStyle(
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
+            color: Colors.black87,
+          ),
         ),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(icon, color: AppColors.primary, size: 28),
-            const SizedBox(height: AppDimensions.paddingS),
-            Text(
-              title,
-              textAlign: TextAlign.center,
-              style: Theme.of(
-                context,
-              ).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-            ),
-          ],
+        const SizedBox(height: 16),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          children: topics.map((topic) {
+            return Column(
+              children: [
+                Container(
+                  width: 60,
+                  height: 60,
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [
+                        topic['color'] as Color,
+                        (topic['color'] as Color).withAlpha(200),
+                      ],
+                    ),
+                    shape: BoxShape.circle,
+                    boxShadow: [
+                      BoxShadow(
+                        color: (topic['color'] as Color).withAlpha(50),
+                        blurRadius: 10,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                  child: Icon(
+                    topic['icon'] as IconData,
+                    color: Colors.white,
+                    size: 28,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  topic['name'] as String,
+                  style: const TextStyle(
+                    fontWeight: FontWeight.w600,
+                    fontSize: 13,
+                  ),
+                ),
+              ],
+            );
+          }).toList(),
         ),
+      ],
+    );
+  }
+
+  Widget _buildFeaturedCourseCard(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: Colors.grey.shade200, width: 1),
       ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          ClipRRect(
+            borderRadius: const BorderRadius.only(
+              topLeft: Radius.circular(20),
+              topRight: Radius.circular(20),
+            ),
+            child: Container(
+              height: 120,
+              width: double.infinity,
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [AppColors.primary, AppColors.primaryLight],
+                ),
+              ),
+              child: Stack(
+                children: [
+                  Positioned(
+                    right: -20,
+                    top: -20,
+                    child: Container(
+                      width: 100,
+                      height: 100,
+                      decoration: BoxDecoration(
+                        color: Colors.white.withAlpha(30),
+                        shape: BoxShape.circle,
+                      ),
+                    ),
+                  ),
+                  const Positioned(
+                    bottom: 16,
+                    left: 16,
+                    child: Text(
+                      'Python for Data Science',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Master advanced libraries like NumPy and Pandas for real-world analysis.',
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: Colors.grey,
+                    height: 1.4,
+                  ),
+                ),
+                const SizedBox(height: 16),
+                Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 4,
+                      ),
+                      decoration: BoxDecoration(
+                        color: Colors.green.withAlpha(20),
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                      child: Row(
+                        children: const [
+                          Icon(
+                            Icons.trending_up,
+                            size: 14,
+                            color: Colors.green,
+                          ),
+                          SizedBox(width: 4),
+                          Text(
+                            '+12k',
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
+                              color: Colors.green,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const Spacer(),
+                    TextButton(
+                      onPressed: () {
+                        Navigator.pushNamed(context, AppRoutes.pythonBasics);
+                      },
+                      style: TextButton.styleFrom(
+                        backgroundColor: AppColors.primary.withAlpha(20),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                      child: const Text(
+                        'Continue',
+                        style: TextStyle(
+                          color: AppColors.primary,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPopularSkillsSection(BuildContext context) {
+    final List<Map<String, dynamic>> skills = [
+      {
+        'title': 'Flutter UI Kit',
+        'modules': '12 Modules',
+        'level': 'Intermediate',
+        'icon': Icons.phone_android_rounded,
+        'color': const Color(0xFF3498DB),
+      },
+      {
+        'title': 'Java Algorithms',
+        'modules': '8 Modules',
+        'level': 'Advanced',
+        'icon': Icons.abc,
+        'color': const Color(0xFFE74C3C),
+      },
+      {
+        'title': 'Command Line Pro',
+        'modules': '6 Modules',
+        'level': 'Beginner',
+        'icon': Icons.terminal_rounded,
+        'color': const Color(0xFF2ECC71),
+      },
+    ];
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          'Popular Skills',
+          style: TextStyle(
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
+            color: Colors.black87,
+          ),
+        ),
+        const SizedBox(height: 16),
+        ...skills
+            .map(
+              (skill) => Container(
+                margin: const EdgeInsets.only(bottom: 12),
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: Colors.grey.shade200, width: 1),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.grey.withAlpha(20),
+                      blurRadius: 10,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
+                ),
+                child: Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: (skill['color'] as Color).withAlpha(20),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Icon(
+                        skill['icon'] as IconData,
+                        color: skill['color'] as Color,
+                        size: 24,
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            skill['title'] as String,
+                            style: const TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            '${skill['modules']} - ${skill['level']}',
+                            style: const TextStyle(
+                              fontSize: 12,
+                              color: Colors.grey,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    IconButton(
+                      icon: Icon(
+                        Icons.play_circle_fill_rounded,
+                        color: AppColors.primary,
+                        size: 32,
+                      ),
+                      onPressed: () {
+                        Navigator.pushNamed(context, AppRoutes.pythonBasics);
+                      },
+                    ),
+                  ],
+                ),
+              ),
+            )
+            .toList(),
+      ],
     );
   }
 }
