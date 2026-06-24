@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:skill_up/core/services/supabase_service.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_dimensions.dart';
 import '../../../../core/widgets/custom_button.dart';
-import 'python_basics_screen.dart';
 
 class VariablesLessonScreen extends StatefulWidget {
   const VariablesLessonScreen({super.key});
@@ -13,15 +13,107 @@ class VariablesLessonScreen extends StatefulWidget {
 
 class _VariablesLessonScreenState extends State<VariablesLessonScreen> {
   bool _showCodeOutput = false;
+  bool _isAlreadyCompleted = false;
+  bool _isSavingProgress = false;
+  
+  final _supabaseClient = SupabaseService().client;
   final TextEditingController _codeController = TextEditingController(
     text:
         '# Assigning values to variables\nuser_name = "Alex"\nuser_age = 24\nis_enrolled = True\n\n# Printing the values\nprint(user_name)\nprint(user_age)',
   );
 
   @override
+  void initState() {
+    super.initState();
+    _checkLessonCompletionStatus();
+  }
+
+  @override
   void dispose() {
     _codeController.dispose();
     super.dispose();
+  }
+
+  // Verify backend synchronization state
+  Future<void> _checkLessonCompletionStatus() async {
+    final user = _supabaseClient.auth.currentUser;
+    if (user == null) return;
+
+    try {
+      final matchingRecord = await _supabaseClient
+          .from('user_progress')
+          .select()
+          .eq('user_id', user.id)
+          .eq('lesson_id', 'python_variables_lesson')
+          .maybeSingle();
+
+      if (matchingRecord != null) {
+        setState(() {
+          _isAlreadyCompleted = true;
+        });
+      }
+    } catch (e) {
+      debugPrint('Error verifying progression matrix logs: $e');
+    }
+  }
+
+  // Push updates and credit user profiles with experience rewards
+  Future<void> _completeAndSyncLesson() async {
+    final user = _supabaseClient.auth.currentUser;
+    if (user == null) return;
+
+    setState(() => _isSavingProgress = true);
+
+    try {
+      if (!_isAlreadyCompleted) {
+        // 1. Add complete milestone entry
+        await _supabaseClient.from('user_progress').insert({
+          'user_id': user.id,
+          'lesson_id': 'python_variables_lesson',
+        });
+
+        // 2. Fetch active XP to modify profile securely
+        final userProfile = await _supabaseClient
+            .from('profiles')
+            .select('xp')
+            .eq('id', user.id)
+            .maybeSingle();
+
+        int currentXp = 0;
+        if (userProfile != null) {
+          currentXp = userProfile['xp'] ?? 0;
+        }
+
+        // 3. Upsert incremented score (+50 XP for completing a lesson)
+        await _supabaseClient.from('profiles').upsert({
+          'id': user.id,
+          'xp': currentXp + 50,
+        });
+      }
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('✓ Progress saved and synced to cloud!'),
+            backgroundColor: Colors.green,
+          ),
+        );
+        Navigator.pop(context);
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Network error saving progress: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isSavingProgress = false);
+      }
+    }
   }
 
   @override
@@ -44,13 +136,17 @@ class _VariablesLessonScreenState extends State<VariablesLessonScreen> {
               color: AppColors.primary.withAlpha(20),
               borderRadius: BorderRadius.circular(20),
             ),
-            child: const Row(
+            child: Row(
               children: [
-                Icon(Icons.check_circle, size: 16, color: AppColors.primary),
-                SizedBox(width: 4),
+                Icon(
+                  _isAlreadyCompleted ? Icons.check_circle : Icons.radio_button_unchecked, 
+                  size: 16, 
+                  color: AppColors.primary
+                ),
+                const SizedBox(width: 4),
                 Text(
-                  '65%',
-                  style: TextStyle(
+                  _isAlreadyCompleted ? '100%' : '65%',
+                  style: const TextStyle(
                     fontSize: 13,
                     fontWeight: FontWeight.w600,
                     color: AppColors.primary,
@@ -65,22 +161,19 @@ class _VariablesLessonScreenState extends State<VariablesLessonScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Progress Bar
             LinearProgressIndicator(
-              value: 0.65,
+              value: _isAlreadyCompleted ? 1.0 : 0.65,
               backgroundColor: Colors.grey.shade200,
               valueColor: const AlwaysStoppedAnimation<Color>(
                 AppColors.primary,
               ),
               minHeight: 3,
             ),
-
             Padding(
               padding: const EdgeInsets.all(AppDimensions.paddingL),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Title
                   const Text(
                     'Variables in Python',
                     style: TextStyle(
@@ -90,14 +183,10 @@ class _VariablesLessonScreenState extends State<VariablesLessonScreen> {
                     ),
                   ),
                   const SizedBox(height: 16),
-
-                  // Explanation Card
                   _buildExplanationCard(
                     'Think of a variable as a labeled container. In Python, you use these containers to store data values that your program can use and change later.',
                   ),
                   const SizedBox(height: AppDimensions.paddingL),
-
-                  // Creating Variables Section
                   const Text(
                     'Creating Variables',
                     style: TextStyle(
@@ -116,8 +205,6 @@ class _VariablesLessonScreenState extends State<VariablesLessonScreen> {
                     ),
                   ),
                   const SizedBox(height: AppDimensions.paddingL),
-
-                  // Code Example
                   const Text(
                     'Example',
                     style: TextStyle(
@@ -131,8 +218,6 @@ class _VariablesLessonScreenState extends State<VariablesLessonScreen> {
                     '# Assigning values to variables\nuser_name = "Alex"\nuser_age = 24\nis_enrolled = True\n\n# Printing the values\nprint(user_name)\nprint(user_age)',
                   ),
                   const SizedBox(height: AppDimensions.paddingM),
-
-                  // Run Code Button
                   CustomButton(
                     text: 'Run Code',
                     onPressed: () {
@@ -147,15 +232,11 @@ class _VariablesLessonScreenState extends State<VariablesLessonScreen> {
                       color: AppColors.primary,
                     ),
                   ),
-
                   if (_showCodeOutput) ...[
                     const SizedBox(height: AppDimensions.paddingM),
                     _buildOutputBlock('Alex\n24'),
                   ],
-
                   const SizedBox(height: AppDimensions.paddingL),
-
-                  // Naming Rules Section
                   const Text(
                     'Naming Rules',
                     style: TextStyle(
@@ -165,21 +246,11 @@ class _VariablesLessonScreenState extends State<VariablesLessonScreen> {
                     ),
                   ),
                   const SizedBox(height: 12),
-                  _buildBulletPoint(
-                    'Names must start with a letter or underscore',
-                  ),
-                  _buildBulletPoint(
-                    'Variable names are case-sensitive (age is not Age)',
-                  ),
-                  _buildBulletPoint(
-                    'Can only contain letters, numbers, and underscores',
-                  ),
-                  _buildBulletPoint(
-                    'Cannot use Python keywords (if, else, while, etc.)',
-                  ),
+                  _buildBulletPoint('Names must start with a letter or underscore'),
+                  _buildBulletPoint('Variable names are case-sensitive (age is not Age)'),
+                  _buildBulletPoint('Can only contain letters, numbers, and underscores'),
+                  _buildBulletPoint('Cannot use Python keywords (if, else, while, etc.)'),
                   const SizedBox(height: AppDimensions.paddingL),
-
-                  // Dynamic Typing Section
                   const Text(
                     'Dynamic Typing',
                     style: TextStyle(
@@ -202,23 +273,8 @@ class _VariablesLessonScreenState extends State<VariablesLessonScreen> {
                     'x = 10        # x is an integer\nx = "Hello"   # now x is a string\nx = True      # now x is a boolean',
                   ),
                   const SizedBox(height: AppDimensions.paddingXL),
-
-                  // Quick Quiz Section
                   _buildQuizSection(),
                   const SizedBox(height: AppDimensions.paddingXL),
-
-                  // Next Button
-                  CustomButton(
-                    text: 'Next Lesson',
-                    onPressed: () {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text('Great job! Moving to next lesson...'),
-                          backgroundColor: Colors.green,
-                        ),
-                      );
-                    },
-                  ),
                   const SizedBox(height: AppDimensions.paddingL),
                 ],
               ),
@@ -239,7 +295,7 @@ class _VariablesLessonScreenState extends State<VariablesLessonScreen> {
       ),
       child: Row(
         children: [
-          Icon(Icons.lightbulb_outline, color: AppColors.primary, size: 24),
+          const Icon(Icons.lightbulb_outline, color: AppColors.primary, size: 24),
           const SizedBox(width: 12),
           Expanded(
             child: Text(
@@ -315,7 +371,7 @@ class _VariablesLessonScreenState extends State<VariablesLessonScreen> {
       padding: const EdgeInsets.only(bottom: 8),
       child: Row(
         children: [
-          Icon(Icons.check_circle, size: 18, color: AppColors.primary),
+          const Icon(Icons.check_circle, size: 18, color: AppColors.primary),
           const SizedBox(width: 12),
           Expanded(
             child: Text(

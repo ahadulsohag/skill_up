@@ -1,19 +1,29 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:skill_up/core/providers/course_provider.dart';
+import 'package:skill_up/features/lesson/presentation/screens/lesson_detail_screen.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_dimensions.dart';
 import '../../../../core/widgets/custom_button.dart';
-import 'package:skill_up/features/lesson/presentation/screens/variable_lesson_screen.dart';
+import 'package:skill_up/features/auth/domain/models/course_models.dart';
 
-class PythonBasicsScreen extends StatelessWidget {
-  const PythonBasicsScreen({super.key});
+class CourseDetailScreen extends StatelessWidget {
+  final CourseModel course;
+
+  const CourseDetailScreen({super.key, required this.course});
 
   @override
   Widget build(BuildContext context) {
+    // Watch the provider to get real-time updates when a lesson is completed
+    final lessons = context.watch<CourseProvider>().getLessonsForCourse(
+      course.id,
+    );
+
     return Scaffold(
       backgroundColor: Colors.white,
       body: CustomScrollView(
         slivers: [
-          // Hero Header
+          // Hero Header (Dynamically uses course data)
           SliverAppBar(
             expandedHeight: 280,
             floating: false,
@@ -26,7 +36,7 @@ class PythonBasicsScreen extends StatelessWidget {
                   gradient: LinearGradient(
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
-                    colors: [AppColors.primary, AppColors.primaryLight],
+                    colors: [course.color, course.color.withAlpha(200)],
                   ),
                 ),
                 child: SafeArea(
@@ -36,15 +46,11 @@ class PythonBasicsScreen extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       mainAxisAlignment: MainAxisAlignment.end,
                       children: [
-                        const Icon(
-                          Icons.code_rounded,
-                          size: 50,
-                          color: Colors.white,
-                        ),
+                        Icon(course.icon, size: 50, color: Colors.white),
                         const SizedBox(height: 16),
-                        const Text(
-                          'Python Basics',
-                          style: TextStyle(
+                        Text(
+                          course.title,
+                          style: const TextStyle(
                             fontSize: 32,
                             fontWeight: FontWeight.bold,
                             color: Colors.white,
@@ -52,7 +58,7 @@ class PythonBasicsScreen extends StatelessWidget {
                         ),
                         const SizedBox(height: 8),
                         Text(
-                          'Master the foundational logic of the world\'s most versatile programming language.',
+                          course.description,
                           style: TextStyle(
                             fontSize: 14,
                             color: Colors.white.withOpacity(0.9),
@@ -64,14 +70,14 @@ class PythonBasicsScreen extends StatelessWidget {
                           children: [
                             _buildInfoChip(
                               Icons.access_time_rounded,
-                              '4.5h',
-                              'ESTIMATED TIME',
+                              course.duration,
+                              'ESTIMATED',
                             ),
                             const SizedBox(width: 16),
                             _buildInfoChip(
                               Icons.stars_rounded,
-                              '240 XP',
-                              'REWARD POINTS',
+                              '${course.xpReward} XP',
+                              'REWARD',
                             ),
                           ],
                         ),
@@ -89,8 +95,6 @@ class PythonBasicsScreen extends StatelessWidget {
             sliver: SliverList(
               delegate: SliverChildListDelegate([
                 const SizedBox(height: AppDimensions.paddingM),
-
-                // Curriculum Header
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
@@ -108,15 +112,15 @@ class PythonBasicsScreen extends StatelessWidget {
                         vertical: 6,
                       ),
                       decoration: BoxDecoration(
-                        color: AppColors.primary.withAlpha(20),
+                        color: course.color.withAlpha(20),
                         borderRadius: BorderRadius.circular(20),
                       ),
-                      child: const Text(
-                        '8 Lessons',
+                      child: Text(
+                        '${lessons.length} Lessons',
                         style: TextStyle(
                           fontSize: 13,
                           fontWeight: FontWeight.w600,
-                          color: AppColors.primary,
+                          color: course.color,
                         ),
                       ),
                     ),
@@ -124,61 +128,16 @@ class PythonBasicsScreen extends StatelessWidget {
                 ),
                 const SizedBox(height: AppDimensions.paddingL),
 
-                // Lesson List
-                _buildLessonItem(
-                  context,
-                  'Intro to Variables',
-                  'Chapter 1 • 12 mins',
-                  1,
-                  true,
-                ),
-                _buildLessonItem(
-                  context,
-                  'Loops & Logic',
-                  'Chapter 2 • 18 mins',
-                  2,
-                  false,
-                ),
-                _buildLessonItem(
-                  context,
-                  'List Comprehension',
-                  'Chapter 3 • 15 mins',
-                  3,
-                  false,
-                ),
-                _buildLessonItem(
-                  context,
-                  'Functional Structures',
-                  'Chapter 4 • 22 mins',
-                  4,
-                  false,
-                ),
-                _buildLessonItem(
-                  context,
-                  'Error Handling',
-                  'Chapter 5 • 10 mins',
-                  5,
-                  false,
-                ),
-
-                const SizedBox(height: AppDimensions.paddingXL),
-
-                // Resume Button
-                CustomButton(
-                  text: 'Resume Course',
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const VariablesLessonScreen(),
-                      ),
-                    );
-                  },
-                  prefix: const Icon(
-                    Icons.play_arrow_rounded,
-                    color: Colors.white,
-                  ),
-                ),
+                // Dynamically build the list of lessons
+                if (lessons.isEmpty)
+                  const Center(child: Text("Loading lessons..."))
+                else
+                  ...lessons
+                      .map(
+                        (lesson) =>
+                            _buildLessonItem(context, lesson, lessons, course),
+                      )
+                      .toList(),
 
                 const SizedBox(height: AppDimensions.paddingXL),
               ]),
@@ -227,11 +186,18 @@ class PythonBasicsScreen extends StatelessWidget {
 
   Widget _buildLessonItem(
     BuildContext context,
-    String title,
-    String subtitle,
-    int chapterNumber,
-    bool isCompleted,
+    LessonModel lesson,
+    List<LessonModel> allLessons,
+    CourseModel course,
   ) {
+    // Logic to unlock only if it's chapter 1, or if the previous chapter is completed
+    bool isUnlocked =
+        lesson.chapterNumber == 1 ||
+        lesson.isCompleted ||
+        allLessons.any(
+          (l) => l.chapterNumber == lesson.chapterNumber - 1 && l.isCompleted,
+        );
+
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(
@@ -252,29 +218,36 @@ class PythonBasicsScreen extends StatelessWidget {
           width: 48,
           height: 48,
           decoration: BoxDecoration(
-            gradient: isCompleted ? AppColors.primaryGradient : null,
-            color: isCompleted ? null : AppColors.primary.withAlpha(15),
+            color: lesson.isCompleted
+                ? Colors.green
+                : (isUnlocked
+                      ? course.color.withAlpha(15)
+                      : Colors.grey.shade100),
             borderRadius: BorderRadius.circular(12),
           ),
           child: Icon(
-            isCompleted ? Icons.check_rounded : Icons.play_arrow_rounded,
-            color: isCompleted ? Colors.white : AppColors.primary,
+            lesson.isCompleted
+                ? Icons.check_rounded
+                : (isUnlocked ? Icons.play_arrow_rounded : Icons.lock_rounded),
+            color: lesson.isCompleted
+                ? Colors.white
+                : (isUnlocked ? course.color : Colors.grey),
             size: 24,
           ),
         ),
         title: Text(
-          title,
-          style: const TextStyle(
+          lesson.title,
+          style: TextStyle(
             fontSize: 16,
             fontWeight: FontWeight.w600,
-            color: Colors.black87,
+            color: isUnlocked ? Colors.black87 : Colors.grey,
           ),
         ),
         subtitle: Text(
-          subtitle,
+          lesson.subtitle,
           style: TextStyle(fontSize: 12, color: Colors.grey[600]),
         ),
-        trailing: isCompleted
+        trailing: lesson.isCompleted
             ? Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                 decoration: BoxDecoration(
@@ -290,13 +263,14 @@ class PythonBasicsScreen extends StatelessWidget {
                   ),
                 ),
               )
-            : const Icon(Icons.lock_open_rounded, color: Colors.grey, size: 20),
+            : null,
         onTap: () {
-          if (isCompleted || chapterNumber == 1) {
+          if (isUnlocked) {
             Navigator.push(
               context,
               MaterialPageRoute(
-                builder: (context) => const VariablesLessonScreen(),
+                builder: (context) =>
+                    LessonDetailScreen(course: course, lesson: lesson),
               ),
             );
           } else {

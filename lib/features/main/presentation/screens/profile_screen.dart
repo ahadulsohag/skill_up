@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:skill_up/core/services/supabase_service.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_dimensions.dart';
 import '../../../../core/providers/auth_provider.dart';
 import '../../../../routes/app_routes.dart';
-
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
 
@@ -15,6 +15,51 @@ class ProfileScreen extends StatefulWidget {
 class _ProfileScreenState extends State<ProfileScreen> {
   bool _isDarkMode = false;
   bool _notificationsEnabled = true;
+
+  // Supabase data state
+  int _xp = 0;
+  bool _isLoadingXp = true;
+  final _supabaseClient = SupabaseService().client;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchUserXp();
+  }
+
+  Future<void> _fetchUserXp() async {
+    final user = _supabaseClient.auth.currentUser;
+    if (user == null) return;
+
+    try {
+      setState(() => _isLoadingXp = true);
+
+      // Attempt to retrieve profile row
+      final data = await _supabaseClient
+          .from('profiles')
+          .select('xp')
+          .eq('id', user.id)
+          .maybeSingle();
+
+      if (data != null) {
+        setState(() {
+          _xp = data['xp'] ?? 0;
+        });
+      } else {
+        // If profile doesn't exist yet, seed a fresh row for the new account
+        await _supabaseClient.from('profiles').insert({'id': user.id, 'xp': 0});
+        setState(() {
+          _xp = 0;
+        });
+      }
+    } catch (e) {
+      debugPrint('Error fetching user metrics from Supabase: $e');
+    } finally {
+      if (mounted) {
+        setState(() => _isLoadingXp = false);
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -37,116 +82,122 @@ class _ProfileScreenState extends State<ProfileScreen> {
           final email = user?.email ?? 'user@example.com';
           final name = user?.userMetadata?['full_name'] ?? email.split('@')[0];
 
-          return SingleChildScrollView(
-            physics: const BouncingScrollPhysics(),
-            padding: const EdgeInsets.all(AppDimensions.paddingL),
-            child: Column(
-              children: [
-                const CircleAvatar(
-                  radius: 54,
-                  backgroundColor: AppColors.primary,
-                  child: CircleAvatar(
-                    radius: 50,
-                    backgroundColor: Colors.white,
-                    child: Icon(
-                      Icons.person_rounded,
-                      size: 60,
-                      color: AppColors.primary,
+          return RefreshIndicator(
+            onRefresh: _fetchUserXp,
+            color: AppColors.primary,
+            child: SingleChildScrollView(
+              physics: const BouncingScrollPhysics(
+                parent: AlwaysScrollableScrollPhysics(),
+              ),
+              padding: const EdgeInsets.all(AppDimensions.paddingL),
+              child: Column(
+                children: [
+                  const CircleAvatar(
+                    radius: 54,
+                    backgroundColor: AppColors.primary,
+                    child: CircleAvatar(
+                      radius: 50,
+                      backgroundColor: Colors.white,
+                      child: Icon(
+                        Icons.person_rounded,
+                        size: 60,
+                        color: AppColors.primary,
+                      ),
                     ),
                   ),
-                ),
-                const SizedBox(height: AppDimensions.paddingM),
-                Text(
-                  name,
-                  style: const TextStyle(
-                    fontSize: AppDimensions.fontXL,
-                    fontWeight: FontWeight.bold,
+                  const SizedBox(height: AppDimensions.paddingM),
+                  Text(
+                    name,
+                    style: const TextStyle(
+                      fontSize: AppDimensions.fontXL,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  email,
-                  style: TextStyle(
-                    color: Colors.grey[600],
-                    fontSize: AppDimensions.fontM - 2,
+                  const SizedBox(height: 2),
+                  Text(
+                    email,
+                    style: TextStyle(
+                      color: Colors.grey[600],
+                      fontSize: AppDimensions.fontM - 2,
+                    ),
                   ),
-                ),
-                const SizedBox(height: AppDimensions.paddingXL),
-                _buildTierProgressCard(),
-                const SizedBox(height: AppDimensions.paddingXL),
-                _buildSectionHeader('Earned Achievements'),
-                const SizedBox(height: AppDimensions.paddingM),
-                _buildBadgesRow(),
-                const SizedBox(height: AppDimensions.paddingXL),
-                _buildSectionHeader('Preferences'),
-                const SizedBox(height: AppDimensions.paddingM),
-                Card(
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
+                  const SizedBox(height: AppDimensions.paddingXL),
+                  _buildTierProgressCard(),
+                  const SizedBox(height: AppDimensions.paddingXL),
+                  _buildSectionHeader('Earned Achievements'),
+                  const SizedBox(height: AppDimensions.paddingM),
+                  _buildBadgesRow(),
+                  const SizedBox(height: AppDimensions.paddingXL),
+                  _buildSectionHeader('Preferences'),
+                  const SizedBox(height: AppDimensions.paddingM),
+                  Card(
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    elevation: 0,
+                    color: Theme.of(context).cardColor,
+                    child: Column(
+                      children: [
+                        _buildToggleOption(
+                          Icons.dark_mode_rounded,
+                          'Dark Interface Mode',
+                          _isDarkMode,
+                          (value) => setState(() => _isDarkMode = value),
+                        ),
+                        _buildToggleOption(
+                          Icons.notifications_active_rounded,
+                          'Push Notifications',
+                          _notificationsEnabled,
+                          (value) =>
+                              setState(() => _notificationsEnabled = value),
+                        ),
+                      ],
+                    ),
                   ),
-                  elevation: 0,
-                  color: Theme.of(context).cardColor,
-                  child: Column(
-                    children: [
-                      _buildToggleOption(
-                        Icons.dark_mode_rounded,
-                        'Dark Interface Mode',
-                        _isDarkMode,
-                        (value) => setState(() => _isDarkMode = value),
-                      ),
-                      _buildToggleOption(
-                        Icons.notifications_active_rounded,
-                        'Push Notifications',
-                        _notificationsEnabled,
-                        (value) =>
-                            setState(() => _notificationsEnabled = value),
-                      ),
-                    ],
+                  const SizedBox(height: AppDimensions.paddingL),
+                  _buildSectionHeader('Account Support'),
+                  const SizedBox(height: AppDimensions.paddingM),
+                  Card(
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    elevation: 0,
+                    color: Theme.of(context).cardColor,
+                    child: Column(
+                      children: [
+                        _buildProfileOption(
+                          Icons.settings_rounded,
+                          'App Settings',
+                        ),
+                        _buildProfileOption(
+                          Icons.help_outline_rounded,
+                          'Help & Support Center',
+                        ),
+                        _buildProfileOption(
+                          Icons.verified_user_rounded,
+                          'Privacy Policy Agreement',
+                        ),
+                        const Divider(height: 1, indent: 16, endIndent: 16),
+                        _buildProfileOption(
+                          Icons.logout_rounded,
+                          'Sign Out Account',
+                          textColor: AppColors.error,
+                          showChevron: false,
+                          onTap: () async {
+                            await authProvider.signOut();
+                            if (mounted) {
+                              Navigator.pushReplacementNamed(
+                                context,
+                                AppRoutes.login,
+                              );
+                            }
+                          },
+                        ),
+                      ],
+                    ),
                   ),
-                ),
-                const SizedBox(height: AppDimensions.paddingL),
-                _buildSectionHeader('Account Support'),
-                const SizedBox(height: AppDimensions.paddingM),
-                Card(
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  elevation: 0,
-                  color: Theme.of(context).cardColor,
-                  child: Column(
-                    children: [
-                      _buildProfileOption(
-                        Icons.settings_rounded,
-                        'App Settings',
-                      ),
-                      _buildProfileOption(
-                        Icons.help_outline_rounded,
-                        'Help & Support Center',
-                      ),
-                      _buildProfileOption(
-                        Icons.verified_user_rounded,
-                        'Privacy Policy Agreement',
-                      ),
-                      const Divider(height: 1, indent: 16, endIndent: 16),
-                      _buildProfileOption(
-                        Icons.logout_rounded,
-                        'Sign Out Account',
-                        textColor: AppColors.error,
-                        showChevron: false,
-                        onTap: () async {
-                          await authProvider.signOut();
-                          if (mounted) {
-                            Navigator.pushReplacementNamed(
-                              context,
-                              AppRoutes.login,
-                            );
-                          }
-                        },
-                      ),
-                    ],
-                  ),
-                ),
-              ],
+                ],
+              ),
             ),
           );
         },
@@ -169,6 +220,33 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   Widget _buildTierProgressCard() {
+    if (_isLoadingXp) {
+      return Container(
+        width: double.infinity,
+        padding: const EdgeInsets.all(AppDimensions.paddingL),
+        decoration: BoxDecoration(
+          gradient: AppColors.primaryGradient,
+          borderRadius: BorderRadius.circular(16),
+        ),
+        child: const Center(
+          child: CircularProgressIndicator(color: Colors.white),
+        ),
+      );
+    }
+
+    // Level formula: Each level costs 500 XP
+    int calculatedLevel = (_xp / 500).floor() + 1;
+    int xpInCurrentLevel = _xp % 500;
+    double progressValue = xpInCurrentLevel / 500.0;
+    int xpNeededToAdvance = 500 - xpInCurrentLevel;
+
+    String levelTitle = 'Level $calculatedLevel Learner';
+    if (calculatedLevel == 2) levelTitle = 'Level 2 Novice Learner';
+    if (calculatedLevel == 3) levelTitle = 'Level 3 Intermediate Learner';
+    if (calculatedLevel == 4) levelTitle = 'Level 4 Pro Learner';
+    if (calculatedLevel >= 5)
+      levelTitle = 'Level $calculatedLevel Senior Class';
+
     return Container(
       padding: const EdgeInsets.all(AppDimensions.paddingL),
       decoration: BoxDecoration(
@@ -188,12 +266,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Row(
-                children: const [
-                  Icon(Icons.stars_rounded, color: Colors.amber, size: 24),
-                  SizedBox(width: AppDimensions.paddingS),
+                children: [
+                  const Icon(
+                    Icons.stars_rounded,
+                    color: Colors.amber,
+                    size: 24,
+                  ),
+                  const SizedBox(width: AppDimensions.paddingS),
                   Text(
-                    'Level 4 Pro Learner',
-                    style: TextStyle(
+                    levelTitle,
+                    style: const TextStyle(
                       color: Colors.white,
                       fontWeight: FontWeight.bold,
                       fontSize: AppDimensions.fontM,
@@ -201,9 +283,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   ),
                 ],
               ),
-              const Text(
-                '1,450 XP',
-                style: TextStyle(
+              Text(
+                '$_xp XP',
+                style: const TextStyle(
                   color: Colors.white70,
                   fontWeight: FontWeight.w600,
                   fontSize: AppDimensions.fontM - 2,
@@ -214,19 +296,19 @@ class _ProfileScreenState extends State<ProfileScreen> {
           const SizedBox(height: AppDimensions.paddingM),
           ClipRRect(
             borderRadius: BorderRadius.circular(4),
-            child: const LinearProgressIndicator(
-              value: 0.72,
+            child: LinearProgressIndicator(
+              value: progressValue.clamp(0.0, 1.0),
               backgroundColor: Colors.white24,
-              valueColor: AlwaysStoppedAnimation<Color>(Colors.amber),
+              valueColor: const AlwaysStoppedAnimation<Color>(Colors.amber),
               minHeight: 6,
             ),
           ),
           const SizedBox(height: AppDimensions.paddingS),
-          const Align(
+          Align(
             alignment: Alignment.centerLeft,
             child: Text(
-              'Earn 250 XP more to advance to Senior Class!',
-              style: TextStyle(color: Colors.white70, fontSize: 11),
+              'Earn $xpNeededToAdvance XP more to advance to the next level milestone!',
+              style: const TextStyle(color: Colors.white70, fontSize: 11),
             ),
           ),
         ],

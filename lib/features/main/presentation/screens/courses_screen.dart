@@ -1,82 +1,67 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:skill_up/core/providers/course_provider.dart';
+import 'package:skill_up/features/auth/domain/models/course_models.dart';
+import 'package:skill_up/features/lesson/presentation/screens/course_detail_screen.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_dimensions.dart';
-import '../../../lesson/presentation/screens/python_basics_screen.dart';
 
-class CoursesScreen extends StatelessWidget {
+class CoursesScreen extends StatefulWidget {
   const CoursesScreen({super.key});
 
   @override
+  State<CoursesScreen> createState() => _CoursesScreenState();
+}
+
+class _CoursesScreenState extends State<CoursesScreen> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<CourseProvider>().loadDashboardData();
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final provider = context.watch<CourseProvider>();
+
     return Scaffold(
       backgroundColor: Colors.white,
-      body: CustomScrollView(
-        slivers: [
-          const SliverToBoxAdapter(
-            child: Padding(
-              padding: EdgeInsets.all(AppDimensions.paddingL),
-              child: Text(
-                'My Courses',
-                style: TextStyle(
-                  fontSize: 28,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.black87,
+      body: provider.isLoading
+          ? const Center(
+              child: CircularProgressIndicator(color: AppColors.primary),
+            )
+          : CustomScrollView(
+              slivers: [
+                const SliverToBoxAdapter(
+                  child: Padding(
+                    padding: EdgeInsets.all(AppDimensions.paddingL),
+                    child: Text(
+                      'My Courses',
+                      style: TextStyle(
+                        fontSize: 28,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.black87,
+                      ),
+                    ),
+                  ),
                 ),
-              ),
+                SliverPadding(
+                  padding: const EdgeInsets.all(AppDimensions.paddingL),
+                  sliver: SliverList(
+                    delegate: SliverChildBuilderDelegate((context, index) {
+                      final course = provider.courses[index];
+                      return _buildCourseCard(context, course);
+                    }, childCount: provider.courses.length),
+                  ),
+                ),
+              ],
             ),
-          ),
-          SliverPadding(
-            padding: const EdgeInsets.all(AppDimensions.paddingL),
-            sliver: SliverList(
-              delegate: SliverChildListDelegate([
-                _buildCourseCard(
-                  context,
-                  'Python Basics',
-                  'Learn the fundamentals of Python programming',
-                  '4.5h • 8 lessons',
-                  '240 XP',
-                  0.7,
-                  Icons.code_rounded,
-                  AppColors.primary,
-                ),
-                _buildCourseCard(
-                  context,
-                  'Flutter UI Design',
-                  'Master the art of creating beautiful mobile interfaces',
-                  '6h • 12 lessons',
-                  '350 XP',
-                  0.3,
-                  Icons.palette_rounded,
-                  Color(0xFF3498DB),
-                ),
-                _buildCourseCard(
-                  context,
-                  'Data Science 101',
-                  'Introduction to data analysis and visualization',
-                  '8h • 15 lessons',
-                  '500 XP',
-                  0.0,
-                  Icons.analytics_rounded,
-                  Color(0xFF2ECC71),
-                ),
-              ]),
-            ),
-          ),
-        ],
-      ),
     );
   }
 
-  Widget _buildCourseCard(
-    BuildContext context,
-    String title,
-    String description,
-    String duration,
-    String xp,
-    double progress,
-    IconData icon,
-    Color color,
-  ) {
+  Widget _buildCourseCard(BuildContext context, CourseModel course) {
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       decoration: BoxDecoration(
@@ -94,7 +79,6 @@ class CoursesScreen extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Header with gradient
           ClipRRect(
             borderRadius: const BorderRadius.only(
               topLeft: Radius.circular(20),
@@ -105,7 +89,7 @@ class CoursesScreen extends StatelessWidget {
               width: double.infinity,
               decoration: BoxDecoration(
                 gradient: LinearGradient(
-                  colors: [color, color.withAlpha(200)],
+                  colors: [course.color, course.color.withAlpha(200)],
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                 ),
@@ -120,7 +104,7 @@ class CoursesScreen extends StatelessWidget {
                         color: Colors.white.withAlpha(30),
                         borderRadius: BorderRadius.circular(12),
                       ),
-                      child: Icon(icon, color: Colors.white, size: 28),
+                      child: Icon(course.icon, color: Colors.white, size: 28),
                     ),
                     const SizedBox(width: 12),
                     Expanded(
@@ -129,7 +113,7 @@ class CoursesScreen extends StatelessWidget {
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           Text(
-                            title,
+                            course.title,
                             style: const TextStyle(
                               color: Colors.white,
                               fontSize: 18,
@@ -139,29 +123,29 @@ class CoursesScreen extends StatelessWidget {
                           const SizedBox(height: 4),
                           Row(
                             children: [
-                              Icon(
+                              const Icon(
                                 Icons.access_time_rounded,
                                 size: 12,
                                 color: Colors.white70,
                               ),
                               const SizedBox(width: 4),
                               Text(
-                                duration,
-                                style: TextStyle(
+                                course.duration,
+                                style: const TextStyle(
                                   color: Colors.white70,
                                   fontSize: 11,
                                 ),
                               ),
                               const SizedBox(width: 12),
-                              Icon(
+                              const Icon(
                                 Icons.stars_rounded,
                                 size: 12,
                                 color: Colors.white70,
                               ),
                               const SizedBox(width: 4),
                               Text(
-                                xp,
-                                style: TextStyle(
+                                '${course.xpReward} XP',
+                                style: const TextStyle(
                                   color: Colors.white70,
                                   fontSize: 11,
                                 ),
@@ -176,14 +160,13 @@ class CoursesScreen extends StatelessWidget {
               ),
             ),
           ),
-
           Padding(
             padding: const EdgeInsets.all(16),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  description,
+                  course.description,
                   style: TextStyle(
                     fontSize: 14,
                     color: Colors.grey[600],
@@ -208,9 +191,11 @@ class CoursesScreen extends StatelessWidget {
                           ClipRRect(
                             borderRadius: BorderRadius.circular(8),
                             child: LinearProgressIndicator(
-                              value: progress,
+                              value: course.progress,
                               backgroundColor: Colors.grey.shade200,
-                              valueColor: AlwaysStoppedAnimation<Color>(color),
+                              valueColor: AlwaysStoppedAnimation<Color>(
+                                course.color,
+                              ),
                               minHeight: 6,
                             ),
                           ),
@@ -219,11 +204,11 @@ class CoursesScreen extends StatelessWidget {
                     ),
                     const SizedBox(width: 16),
                     Text(
-                      '${(progress * 100).toInt()}%',
+                      '${(course.progress * 100).toInt()}%',
                       style: TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.bold,
-                        color: color,
+                        color: course.color,
                       ),
                     ),
                   ],
@@ -233,15 +218,17 @@ class CoursesScreen extends StatelessWidget {
                   width: double.infinity,
                   child: ElevatedButton(
                     onPressed: () {
+                      // Handing the clicked course object directly to the detail screen!
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (context) => const PythonBasicsScreen(),
+                          builder: (context) =>
+                              CourseDetailScreen(course: course),
                         ),
                       );
                     },
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: color,
+                      backgroundColor: course.color,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
                       ),
