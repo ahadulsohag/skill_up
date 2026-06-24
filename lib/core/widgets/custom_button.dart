@@ -4,7 +4,8 @@ import '../constants/app_dimensions.dart';
 
 class CustomButton extends StatelessWidget {
   final String text;
-  final VoidCallback onPressed;
+  // FIX: Change VoidCallback to VoidCallback? to allow null values
+  final VoidCallback? onPressed;
   final bool isLoading;
   final Color? backgroundColor;
   final Color? textColor;
@@ -15,7 +16,7 @@ class CustomButton extends StatelessWidget {
   const CustomButton({
     super.key,
     required this.text,
-    required this.onPressed,
+    this.onPressed, // No longer required to be non-null
     this.isLoading = false,
     this.backgroundColor,
     this.textColor,
@@ -27,10 +28,12 @@ class CustomButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ElevatedButton(
+      // If isLoading is true OR onPressed is null, the button disables automatically
       onPressed: isLoading ? null : onPressed,
       style: ElevatedButton.styleFrom(
         backgroundColor: backgroundColor ?? AppColors.primary,
         foregroundColor: textColor ?? Colors.white,
+        disabledBackgroundColor: Colors.grey.shade400, // Color when disabled
         minimumSize: Size(
           double.infinity,
           height ?? AppDimensions.buttonHeight,
