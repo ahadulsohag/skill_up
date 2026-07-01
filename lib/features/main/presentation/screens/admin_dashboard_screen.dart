@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:skill_up/core/providers/auth_provider.dart';
+import 'package:skill_up/features/main/presentation/screens/add_course_screen.dart';
 import 'package:skill_up/routes/app_routes.dart';
 
 class AdminDashboardScreen extends StatelessWidget {
@@ -90,10 +91,17 @@ class AdminDashboardScreen extends StatelessWidget {
             const SizedBox(height: 16),
             Row(
               children: [
+                // Under the "Quick Actions" section in admin_dashboard_screen.dart
                 Expanded(
                   child: ElevatedButton.icon(
                     onPressed: () {
-                      // TODO: Navigate to Course Management
+                      // Navigate to the form
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const AddCourseScreen(),
+                        ),
+                      );
                     },
                     icon: const Icon(Icons.add),
                     label: const Text('Add Course'),

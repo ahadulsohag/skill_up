@@ -12,6 +12,15 @@ class SupabaseService {
     );
   }
 
+  // --- Admin Insert Queries ---
+  Future<void> createCourse(Map<String, dynamic> courseData) async {
+    await client.from('courses').insert(courseData);
+  }
+
+  Future<void> createLesson(Map<String, dynamic> lessonData) async {
+    await client.from('lessons').insert(lessonData);
+  }
+
   SupabaseClient get client => Supabase.instance.client;
   User? get currentUser => Supabase.instance.client.auth.currentUser;
   bool get isLoggedIn => currentUser != null;
