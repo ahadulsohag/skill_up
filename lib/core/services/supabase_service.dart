@@ -43,6 +43,16 @@ class SupabaseService {
     await client.auth.signOut();
   }
 
+  // Add this method inside SupabaseService
+  Future<String> fetchUserRole(String userId) async {
+    final response = await client
+        .from('profiles')
+        .select('role')
+        .eq('id', userId)
+        .maybeSingle();
+    return response?['role'] ?? 'user';
+  }
+
   // --- Profile Queries ---
   Future<Map<String, dynamic>> fetchUserProfile() async {
     final uid = currentUser?.id;

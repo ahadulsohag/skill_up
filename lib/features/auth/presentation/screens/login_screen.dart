@@ -27,6 +27,7 @@ class _LoginScreenState extends State<LoginScreen> {
     super.dispose();
   }
 
+  // FIXED: Role-based routing logic added here
   Future<void> _handleLogin() async {
     if (!_formKey.currentState!.validate()) return;
 
@@ -37,7 +38,12 @@ class _LoginScreenState extends State<LoginScreen> {
     );
 
     if (success && mounted) {
-      if (context.mounted) {
+      if (authProvider.isAdmin) {
+        // Route for Admin
+        // Make sure '/admin-dashboard' is in your main.dart routes map!
+        Navigator.pushReplacementNamed(context, '/admin-dashboard');
+      } else {
+        // Route for Regular Users
         Navigator.pushReplacementNamed(context, AppRoutes.main);
       }
     }
