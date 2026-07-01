@@ -8,7 +8,7 @@ class AppStrings {
   static const String emailAddress = 'Email Address';
   static const String password = 'Password';
   static const String login = 'Login';
-  static const String emailHint = 'name@university.edu';
+  static const String emailHint = 'xyz@gmail.com';
   static const String passwordHint = '********';
   static const String orContinueWith = 'OR CONTINUE WITH';
   static const String dontHaveAccount = "Don't have an account?";

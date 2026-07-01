@@ -12,6 +12,15 @@ class SupabaseService {
     );
   }
 
+  // --- Admin Insert Queries ---
+  Future<void> createCourse(Map<String, dynamic> courseData) async {
+    await client.from('courses').insert(courseData);
+  }
+
+  Future<void> createLesson(Map<String, dynamic> lessonData) async {
+    await client.from('lessons').insert(lessonData);
+  }
+
   SupabaseClient get client => Supabase.instance.client;
   User? get currentUser => Supabase.instance.client.auth.currentUser;
   bool get isLoggedIn => currentUser != null;
@@ -41,6 +50,16 @@ class SupabaseService {
 
   Future<void> signOut() async {
     await client.auth.signOut();
+  }
+
+  // Add this method inside SupabaseService
+  Future<String> fetchUserRole(String userId) async {
+    final response = await client
+        .from('profiles')
+        .select('role')
+        .eq('id', userId)
+        .maybeSingle();
+    return response?['role'] ?? 'user';
   }
 
   // --- Profile Queries ---

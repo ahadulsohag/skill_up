@@ -4,13 +4,33 @@ import '../services/supabase_service.dart';
 
 class AuthProvider extends ChangeNotifier {
   final SupabaseService _supabaseService = SupabaseService();
+
   bool _isLoading = false;
   String? _errorMessage;
 
+  // FIXED: Changed String? to String so it matches your getter
+  String _userRole = 'user';
+
+  // Getters
+  String get userRole => _userRole;
+  bool get isAdmin => _userRole == 'admin';
   bool get isLoading => _isLoading;
   String? get errorMessage => _errorMessage;
   bool get isLoggedIn => _supabaseService.isLoggedIn;
   User? get currentUser => _supabaseService.currentUser;
+
+  // Added this method so your main.dart can fetch the role on startup!
+  Future<String> fetchUserRole(String userId) async {
+    try {
+      final role = await _supabaseService.fetchUserRole(userId);
+      _userRole = role; // Cache it in the provider
+      notifyListeners();
+      return role;
+    } catch (e) {
+      debugPrint('Error fetching user role: $e');
+      return 'user';
+    }
+  }
 
   Future<bool> signUp({
     required String email,
@@ -45,6 +65,11 @@ class AuthProvider extends ChangeNotifier {
 
     try {
       await _supabaseService.signIn(email: email, password: password);
+      // After successful sign-in, fetch the user's role
+      final user = _supabaseService.currentUser;
+      if (user != null) {
+        _userRole = await _supabaseService.fetchUserRole(user.id);
+      }
       _isLoading = false;
       notifyListeners();
       return true;
@@ -58,9 +83,11 @@ class AuthProvider extends ChangeNotifier {
 
   Future<void> signOut() async {
     await _supabaseService.signOut();
+    _userRole = 'user'; // reset
     notifyListeners();
   }
 
+  // FIXED: These methods are now properly INSIDE the class
   String _getFriendlyErrorMessage(String error) {
     if (error.contains('Invalid login credentials')) {
       return 'Invalid email or password. Please try again.';
@@ -78,4 +105,4 @@ class AuthProvider extends ChangeNotifier {
     _errorMessage = null;
     notifyListeners();
   }
-}
+} // Properly closing the AuthProvider class here
