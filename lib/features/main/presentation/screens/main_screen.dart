@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:skill_up/features/main/presentation/screens/courses_screen.dart';
+import 'package:skill_up/features/main/presentation/screens/profile_screen.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_dimensions.dart';
 import '../../../../core/providers/auth_provider.dart';
 import '../../../../routes/app_routes.dart';
+
+// FIXED 1: Standardized feature-based imports 
 import '../../../home/presentation/screens/home_screen.dart';
-import 'courses_screen.dart';
-import 'profile_screen.dart';
 
 class MainScreen extends StatefulWidget {
   const MainScreen({super.key});
@@ -18,14 +20,15 @@ class MainScreen extends StatefulWidget {
 class _MainScreenState extends State<MainScreen> {
   int _selectedIndex = 0;
 
-  // Initialize these directly instead of in initState
+  // Make sure CoursesScreen and ProfileScreen have const constructors in their files!
   final List<Widget> _screens = const [
     HomeScreen(),
     CoursesScreen(),
     ProfileScreen(),
   ];
 
-  final List<String> _appBarTitles = ['Home', 'My Courses', 'Profile'];
+  // FIXED 4: Matched the terminology with the bottom nav labels
+  final List<String> _appBarTitles = ['Home', 'Courses', 'Profile'];
 
   void _onItemTapped(int index) {
     setState(() {
@@ -113,6 +116,7 @@ class _MainScreenState extends State<MainScreen> {
           },
         ),
         const SizedBox(width: 4),
+        
         // Search Icon (only for Home and Courses tabs)
         if (_selectedIndex != 2)
           IconButton(
@@ -126,6 +130,8 @@ class _MainScreenState extends State<MainScreen> {
               );
             },
           ),
+          
+        // Settings Icon (only for Profile tab)
         if (_selectedIndex == 2)
           IconButton(
             icon: const Icon(Icons.settings_rounded, color: Colors.grey),
@@ -139,6 +145,7 @@ class _MainScreenState extends State<MainScreen> {
             },
           ),
         const SizedBox(width: 4),
+        
         // Logout button
         IconButton(
           icon: const Icon(Icons.logout_rounded, color: Colors.grey),
@@ -184,19 +191,20 @@ class _MainScreenState extends State<MainScreen> {
           fontWeight: FontWeight.normal,
           fontSize: 12,
         ),
+        // FIXED 3: Made Active/Inactive Icons consistent
         items: const [
           BottomNavigationBarItem(
-            icon: Icon(Icons.home_rounded),
-            activeIcon: Icon(Icons.home),
+            icon: Icon(Icons.home_outlined),
+            activeIcon: Icon(Icons.home_rounded),
             label: 'Home',
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.school_rounded),
+            icon: Icon(Icons.school_outlined),
             activeIcon: Icon(Icons.school_rounded),
             label: 'Courses',
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.person_rounded),
+            icon: Icon(Icons.person_outline_rounded),
             activeIcon: Icon(Icons.person_rounded),
             label: 'Profile',
           ),
@@ -230,7 +238,7 @@ class _MainScreenState extends State<MainScreen> {
                     borderRadius: BorderRadius.circular(AppDimensions.radiusS),
                   ),
                 ),
-                child: const Text('Sign Out'),
+                child: const Text('Sign Out', style: TextStyle(color: Colors.white)),
               ),
             ],
           ),

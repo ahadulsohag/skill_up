@@ -1,15 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-
-// Services & Providers
 import 'package:skill_up/core/services/supabase_service.dart';
 import 'package:skill_up/core/providers/auth_provider.dart';
 import 'package:skill_up/core/providers/course_provider.dart';
 import 'package:skill_up/core/theme/app_theme.dart';
 import 'package:skill_up/features/main/presentation/screens/admin_dashboard_screen.dart';
 import 'package:skill_up/routes/app_routes.dart';
-
-// Screens
 import 'package:skill_up/features/auth/presentation/screens/login_screen.dart';
 import 'package:skill_up/features/auth/presentation/screens/register_screen.dart';
 import 'package:skill_up/features/home/presentation/screens/home_screen.dart';

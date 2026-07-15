@@ -1,356 +1,263 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../../../../core/constants/app_colors.dart';
-import '../../../../core/constants/app_strings.dart';
 import '../../../../core/constants/app_dimensions.dart';
-import '../../../../core/widgets/custom_button.dart';
-import '../../../../core/providers/auth_provider.dart';
-import '../../../../routes/app_routes.dart';
+import '../../../../core/constants/app_colors.dart';
+import '../../../../core/providers/course_provider.dart';
+import '../../../lesson/presentation/screens/course_detail_screen.dart';
+import '../widgets/current_mission_card.dart';
+import '../widgets/popular_skills_section.dart';
+import '../widgets/your_path_section.dart';
 
-class HomeScreen extends StatelessWidget {
+class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
 
   @override
+  State<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<CourseProvider>().loadDashboardData();
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final provider = context.watch<CourseProvider>();
+
     return Scaffold(
       backgroundColor: Colors.white,
-      body: CustomScrollView(
-        slivers: [
-          
-          // Main Content
-          SliverPadding(
-            padding: const EdgeInsets.all(AppDimensions.paddingL),
-            sliver: SliverList(
-              delegate: SliverChildListDelegate([
-                // Current Mission Section
-                _buildCurrentMissionCard(context),
-                const SizedBox(height: AppDimensions.paddingXL),
-
-                // Your Path Section
-                _buildYourPathSection(context),
-                const SizedBox(height: AppDimensions.paddingXL),
-
-                // Featured Course
-                _buildFeaturedCourseCard(context),
-                const SizedBox(height: AppDimensions.paddingXL),
-
-                // Popular Skills Section
-                _buildPopularSkillsSection(context),
-                const SizedBox(height: AppDimensions.paddingXL),
-
-                // Bottom Navigation Spacing
-                const SizedBox(height: 80),
-              ]),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildCurrentMissionCard(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(AppDimensions.paddingL),
-      decoration: BoxDecoration(
-        gradient: AppColors.primaryGradient,
-        borderRadius: BorderRadius.circular(26),
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.primary.withAlpha(30),
-            blurRadius: 20,
-            offset: const Offset(0, 8),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: Colors.white.withAlpha(30),
-                ),
-                child: const Icon(
-                  Icons.flag_rounded,
-                  color: Colors.white,
-                  size: 26,
-                ),
-              ),
-              const SizedBox(width: 12),
-              const Expanded(
-                child: Text(
-                  'CURRENT MISSION',
-                  style: TextStyle(
-                    color: Colors.white70,
-                    fontSize: 12,
-                    fontWeight: FontWeight.w600,
-                    letterSpacing: 1,
-                  ),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 16),
-          const Text(
-            'Keep going! You\'re 70% through\nPython Basics.',
-            style: TextStyle(
-              color: Colors.white,
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          const SizedBox(height: 20),
-          Row(
-            children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text(
-                      'Course Completion',
-                      style: TextStyle(color: Colors.white70, fontSize: 12),
-                    ),
-                    const SizedBox(height: 8),
-                    ClipRRect(
-                      borderRadius: BorderRadius.circular(10),
-                      child: LinearProgressIndicator(
-                        value: 0.7,
-                        backgroundColor: Colors.white.withAlpha(50),
-                        valueColor: const AlwaysStoppedAnimation<Color>(
-                          Colors.white,
+      body: provider.isLoading
+          ? const Center(
+              child: CircularProgressIndicator(color: AppColors.primary),
+            )
+          : CustomScrollView(
+              slivers: [
+                // User greeting header
+                SliverToBoxAdapter(
+                  child: Padding(
+                    padding: const EdgeInsets.all(AppDimensions.paddingL),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Welcome back, ${provider.userProfile?.fullName ?? 'Learner'}! 👋',
+                          style: const TextStyle(
+                            fontSize: 24,
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.textPrimary,
+                          ),
                         ),
-                        minHeight: 8,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(width: 16),
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 8,
-                ),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: const Text(
-                  '70%',
-                  style: TextStyle(
-                    color: AppColors.primary,
-                    fontWeight: FontWeight.bold,
-                    fontSize: 14,
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildYourPathSection(BuildContext context) {
-    final List<Map<String, dynamic>> topics = [
-      {
-        'name': 'Python',
-        'icon': Icons.code_rounded,
-        'color': AppColors.primary,
-      },
-      {
-        'name': 'C++',
-        'icon': Icons.code_off_rounded,
-        'color': const Color(0xFFE74C3C),
-      },
-      {
-        'name': 'Java',
-        'icon': Icons.coffee_rounded,
-        'color': const Color(0xFFF39C12),
-      },
-      {
-        'name': 'Flutter',
-        'icon': Icons.phone_android_rounded,
-        'color': const Color(0xFF3498DB),
-      },
-    ];
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Text(
-          'Your Path',
-          style: TextStyle(
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
-            color: Colors.black87,
-          ),
-        ),
-        const SizedBox(height: 16),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-          children: topics.map((topic) {
-            return Column(
-              children: [
-                Container(
-                  width: 60,
-                  height: 60,
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      colors: [
-                        topic['color'] as Color,
-                        (topic['color'] as Color).withAlpha(200),
+                        const SizedBox(height: AppDimensions.paddingS),
+                        Row(
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: AppDimensions.paddingM,
+                                vertical: AppDimensions.paddingS,
+                              ),
+                              decoration: BoxDecoration(
+                                color: AppColors.surface,
+                                borderRadius: BorderRadius.circular(
+                                  AppDimensions.radiusM,
+                                ),
+                                border: Border.all(color: AppColors.border),
+                              ),
+                              child: Row(
+                                children: [
+                                  const Icon(
+                                    Icons.stars_rounded,
+                                    size: 16,
+                                    color: AppColors.warning,
+                                  ),
+                                  const SizedBox(width: AppDimensions.paddingS),
+                                  Text(
+                                    '${provider.userProfile?.xp ?? 0} XP',
+                                    style: const TextStyle(
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.w600,
+                                      color: AppColors.textPrimary,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
                       ],
                     ),
-                    shape: BoxShape.circle,
-                    boxShadow: [
-                      BoxShadow(
-                        color: (topic['color'] as Color).withAlpha(50),
-                        blurRadius: 10,
-                        offset: const Offset(0, 4),
-                      ),
-                    ],
-                  ),
-                  child: Icon(
-                    topic['icon'] as IconData,
-                    color: Colors.white,
-                    size: 28,
                   ),
                 ),
-                const SizedBox(height: 8),
-                Text(
-                  topic['name'] as String,
-                  style: const TextStyle(
-                    fontWeight: FontWeight.w600,
-                    fontSize: 13,
+                SliverPadding(
+                  padding: const EdgeInsets.all(AppDimensions.paddingL),
+                  sliver: SliverList(
+                    delegate: SliverChildListDelegate([
+                      // Current Mission - First incomplete course
+                      if (provider.courses.isNotEmpty) ...[
+                        GestureDetector(
+                          onTap: () {
+                            final currentCourse = provider.courses.firstWhere(
+                              (course) => course.progress < 1.0,
+                              orElse: () => provider.courses.first,
+                            );
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) =>
+                                    CourseDetailScreen(course: currentCourse),
+                              ),
+                            );
+                          },
+                          child: _buildCurrentMissionSection(context, provider),
+                        ),
+                        const SizedBox(height: AppDimensions.paddingXL),
+                      ],
+
+                      // Your Learning Path - Show all courses
+                      if (provider.courses.isNotEmpty) ...[
+                        YourPathSection(courses: provider.courses),
+                        const SizedBox(height: AppDimensions.paddingXL),
+                      ],
+
+                      // Featured Course - Course with highest progress
+                      if (provider.courses.isNotEmpty) ...[
+                        GestureDetector(
+                          onTap: () {
+                            final featuredCourse = provider.courses.reduce(
+                              (a, b) => a.progress > b.progress ? a : b,
+                            );
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) =>
+                                    CourseDetailScreen(course: featuredCourse),
+                              ),
+                            );
+                          },
+                          child: _buildFeaturedCourseSection(context, provider),
+                        ),
+                        const SizedBox(height: AppDimensions.paddingXL),
+                      ],
+
+                      // Statistics Overview
+                      GestureDetector(
+                        onTap: () {
+                          // Navigate to courses screen to see all stats
+                          Navigator.pushNamed(context, '/main');
+                        },
+                        child: _buildStatsSection(context, provider),
+                      ),
+                      const SizedBox(height: AppDimensions.paddingXL),
+
+                      // Popular Skills
+                      GestureDetector(
+                        onTap: () {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text('Skills section coming soon!'),
+                              duration: Duration(seconds: 1),
+                            ),
+                          );
+                        },
+                        child: PopularSkillsSection(),
+                      ),
+                      const SizedBox(height: 80),
+                    ]),
                   ),
                 ),
               ],
-            );
-          }).toList(),
-        ),
-      ],
+            ),
     );
   }
 
-  Widget _buildFeaturedCourseCard(BuildContext context) {
+  Widget _buildCurrentMissionSection(
+    BuildContext context,
+    CourseProvider provider,
+  ) {
+    // Find first incomplete course or just take the first one
+    final currentCourse = provider.courses.firstWhere(
+      (course) => course.progress < 1.0,
+      orElse: () => provider.courses.first,
+    );
+
+    return CurrentMissionCard(
+      progress: currentCourse.progress,
+      courseName: currentCourse.title,
+    );
+  }
+
+  Widget _buildFeaturedCourseSection(
+    BuildContext context,
+    CourseProvider provider,
+  ) {
+    // Get the course with highest progress or first if all 0
+    final featuredCourse = provider.courses.reduce(
+      (a, b) => a.progress > b.progress ? a : b,
+    );
+
     return Container(
+      padding: const EdgeInsets.all(AppDimensions.paddingM),
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: Colors.grey.shade200, width: 1),
+        gradient: LinearGradient(
+          colors: [
+            featuredCourse.color,
+            featuredCourse.color.withValues(alpha: 0.78),
+          ],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(AppDimensions.radiusL),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          ClipRRect(
-            borderRadius: const BorderRadius.only(
-              topLeft: Radius.circular(20),
-              topRight: Radius.circular(20),
-            ),
-            child: Container(
-              height: 120,
-              width: double.infinity,
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [AppColors.primary, AppColors.primaryLight],
-                ),
-              ),
-              child: Stack(
-                children: [
-                  Positioned(
-                    right: -20,
-                    top: -20,
-                    child: Container(
-                      width: 100,
-                      height: 100,
-                      decoration: BoxDecoration(
-                        color: Colors.white.withAlpha(30),
-                        shape: BoxShape.circle,
-                      ),
-                    ),
-                  ),
-                  const Positioned(
-                    bottom: 16,
-                    left: 16,
-                    child: Text(
-                      'Python for Data Science',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
+          Text(
+            'Featured Course',
+            style: Theme.of(context).textTheme.titleLarge?.copyWith(
+              fontWeight: FontWeight.bold,
+              color: Colors.white,
             ),
           ),
-          Padding(
-            padding: const EdgeInsets.all(16),
+          const SizedBox(height: AppDimensions.paddingM),
+          Container(
+            padding: const EdgeInsets.all(AppDimensions.paddingM),
+            decoration: BoxDecoration(
+              color: Colors.white.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(AppDimensions.radiusM),
+            ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
-                  'Master advanced libraries like NumPy and Pandas for real-world analysis.',
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: Colors.grey,
-                    height: 1.4,
+                Text(
+                  featuredCourse.title,
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.w600,
+                    color: Colors.white,
                   ),
                 ),
-                const SizedBox(height: 16),
-                Row(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 8,
-                        vertical: 4,
-                      ),
-                      decoration: BoxDecoration(
-                        color: Colors.green.withAlpha(20),
-                        borderRadius: BorderRadius.circular(6),
-                      ),
-                      child: Row(
-                        children: const [
-                          Icon(
-                            Icons.trending_up,
-                            size: 14,
-                            color: Colors.green,
-                          ),
-                          SizedBox(width: 4),
-                          Text(
-                            '+12k',
-                            style: TextStyle(
-                              fontSize: 12,
-                              fontWeight: FontWeight.w600,
-                              color: Colors.green,
-                            ),
-                          ),
-                        ],
-                      ),
+                const SizedBox(height: AppDimensions.paddingS),
+                Text(
+                  featuredCourse.description,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: Colors.white.withValues(alpha: 0.8),
+                  ),
+                ),
+                const SizedBox(height: AppDimensions.paddingM),
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(AppDimensions.radiusS),
+                  child: LinearProgressIndicator(
+                    value: featuredCourse.progress,
+                    minHeight: 6,
+                    backgroundColor: Colors.white.withValues(alpha: 0.2),
+                    valueColor: const AlwaysStoppedAnimation<Color>(
+                      Colors.white,
                     ),
-                    const Spacer(),
-                    TextButton(
-                      onPressed: () {
-                        Navigator.pushNamed(context, AppRoutes.pythonBasics);
-                      },
-                      style: TextButton.styleFrom(
-                        backgroundColor: AppColors.primary.withAlpha(20),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                      ),
-                      child: const Text(
-                        'Continue',
-                        style: TextStyle(
-                          color: AppColors.primary,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
-                  ],
+                  ),
                 ),
               ],
             ),
@@ -360,112 +267,96 @@ class HomeScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildPopularSkillsSection(BuildContext context) {
-    final List<Map<String, dynamic>> skills = [
-      {
-        'title': 'Flutter UI Kit',
-        'modules': '12 Modules',
-        'level': 'Intermediate',
-        'icon': Icons.phone_android_rounded,
-        'color': const Color(0xFF3498DB),
-      },
-      {
-        'title': 'Java Algorithms',
-        'modules': '8 Modules',
-        'level': 'Advanced',
-        'icon': Icons.abc,
-        'color': const Color(0xFFE74C3C),
-      },
-      {
-        'title': 'Command Line Pro',
-        'modules': '6 Modules',
-        'level': 'Beginner',
-        'icon': Icons.terminal_rounded,
-        'color': const Color(0xFF2ECC71),
-      },
-    ];
+  Widget _buildStatsSection(BuildContext context, CourseProvider provider) {
+    final totalCourses = provider.courses.length;
+    final completedCourses = provider.courses
+        .where((c) => c.progress == 1.0)
+        .length;
+    final inProgressCourses = provider.courses
+        .where((c) => c.progress > 0 && c.progress < 1.0)
+        .length;
 
+    return Container(
+      padding: const EdgeInsets.all(AppDimensions.paddingM),
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(AppDimensions.radiusL),
+        border: Border.all(color: AppColors.border),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Your Progress',
+            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+              fontWeight: FontWeight.bold,
+              color: AppColors.textPrimary,
+            ),
+          ),
+          const SizedBox(height: AppDimensions.paddingM),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            children: [
+              _buildStatItem(
+                context,
+                icon: Icons.school_rounded,
+                label: 'Courses',
+                value: '$totalCourses',
+                color: AppColors.primary,
+              ),
+              _buildStatItem(
+                context,
+                icon: Icons.check_circle_rounded,
+                label: 'Completed',
+                value: '$completedCourses',
+                color: AppColors.success,
+              ),
+              _buildStatItem(
+                context,
+                icon: Icons.hourglass_bottom_rounded,
+                label: 'In Progress',
+                value: '$inProgressCourses',
+                color: AppColors.warning,
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildStatItem(
+    BuildContext context, {
+    required IconData icon,
+    required String label,
+    required String value,
+    required Color color,
+  }) {
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
-          'Popular Skills',
-          style: TextStyle(
-            fontSize: 20,
+        Container(
+          padding: const EdgeInsets.all(AppDimensions.paddingM),
+          decoration: BoxDecoration(
+            color: color.withValues(alpha: 0.1),
+            borderRadius: BorderRadius.circular(AppDimensions.radiusM),
+          ),
+          child: Icon(icon, color: color, size: 24),
+        ),
+        const SizedBox(height: AppDimensions.paddingS),
+        Text(
+          value,
+          style: Theme.of(context).textTheme.titleMedium?.copyWith(
             fontWeight: FontWeight.bold,
-            color: Colors.black87,
+            color: AppColors.textPrimary,
           ),
         ),
-        const SizedBox(height: 16),
-        ...skills
-            .map(
-              (skill) => Container(
-                margin: const EdgeInsets.only(bottom: 12),
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: Colors.grey.shade200, width: 1),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.grey.withAlpha(20),
-                      blurRadius: 10,
-                      offset: const Offset(0, 2),
-                    ),
-                  ],
-                ),
-                child: Row(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.all(12),
-                      decoration: BoxDecoration(
-                        color: (skill['color'] as Color).withAlpha(20),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Icon(
-                        skill['icon'] as IconData,
-                        color: skill['color'] as Color,
-                        size: 24,
-                      ),
-                    ),
-                    const SizedBox(width: 16),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            skill['title'] as String,
-                            style: const TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            '${skill['modules']} - ${skill['level']}',
-                            style: const TextStyle(
-                              fontSize: 12,
-                              color: Colors.grey,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    IconButton(
-                      icon: Icon(
-                        Icons.play_circle_fill_rounded,
-                        color: AppColors.primary,
-                        size: 32,
-                      ),
-                      onPressed: () {
-                        Navigator.pushNamed(context, AppRoutes.pythonBasics);
-                      },
-                    ),
-                  ],
-                ),
-              ),
-            )
-            .toList(),
+        const SizedBox(height: AppDimensions.paddingXS),
+        Text(
+          label,
+          style: Theme.of(
+            context,
+          ).textTheme.bodySmall?.copyWith(color: AppColors.textLight),
+        ),
       ],
     );
   }
