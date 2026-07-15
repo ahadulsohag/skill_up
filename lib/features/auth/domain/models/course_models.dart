@@ -1,5 +1,28 @@
 import 'package:flutter/material.dart';
 
+// Helper function to get constant IconData from codepoint
+IconData _getIconFromCodepoint(int codepoint) {
+  // Map common icon codepoints to constant MaterialIcons
+  const iconMap = {
+    0xf430: Icons.school_rounded,
+    0xf201: Icons.code_rounded,
+    0xf27c: Icons.design_services_rounded,
+    0xf0ea: Icons.architecture_rounded,
+    0xf027: Icons.trending_up_rounded,
+    0xf061: Icons.speed_rounded,
+    0xf08a: Icons.build_rounded,
+    0xf02e: Icons.videocam_rounded,
+    0xf0e0: Icons.mail_rounded,
+    0xf105: Icons.chat_rounded,
+    0xe5d5: Icons.book_rounded,
+    0xeb3b: Icons.dashboard_rounded,
+    0xf0e1: Icons.people_rounded,
+    58280: Icons.school_rounded, // Python Basics
+  };
+
+  return iconMap[codepoint] ?? Icons.school_rounded; // Default icon
+}
+
 class CourseModel {
   final String id;
   final String title;
@@ -28,7 +51,7 @@ class CourseModel {
       description: json['description'],
       duration: json['duration'],
       xpReward: json['xp_reward'],
-      icon: IconData(json['icon_codepoint'], fontFamily: 'MaterialIcons'),
+      icon: _getIconFromCodepoint(json['icon_codepoint']),
       color: Color(int.parse(json['color_hex'])),
     );
   }
