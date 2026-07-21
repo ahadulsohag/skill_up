@@ -9,6 +9,7 @@ class CourseProvider extends ChangeNotifier {
   Map<String, List<LessonModel>> _courseLessons = {};
   UserProfileModel? _userProfile;
   bool _isLoading = false;
+  bool _isLoadingInProgress = false;
 
   List<CourseModel> get courses => _courses;
   UserProfileModel? get userProfile => _userProfile;
@@ -19,6 +20,12 @@ class CourseProvider extends ChangeNotifier {
 
   // Fetch courses, user progression analytics, and individual lesson assets
   Future<void> loadDashboardData() async {
+    // Prevent concurrent calls to avoid duplicates
+    if (_isLoadingInProgress) {
+      return;
+    }
+
+    _isLoadingInProgress = true;
     _isLoading = true;
     notifyListeners();
 
@@ -31,6 +38,10 @@ class CourseProvider extends ChangeNotifier {
       final rawProfile = await _service.fetchUserProfile();
 
       _userProfile = UserProfileModel.fromJson(rawProfile);
+
+      // Clear previous courses to avoid duplicates
+      _courses.clear();
+      _courseLessons.clear();
 
       List<CourseModel> parsedCourses = [];
 
@@ -58,6 +69,7 @@ class CourseProvider extends ChangeNotifier {
     } catch (e) {
       debugPrint("Error loading system metrics dashboard data: $e");
     } finally {
+      _isLoadingInProgress = false;
       _isLoading = false;
       notifyListeners();
     }

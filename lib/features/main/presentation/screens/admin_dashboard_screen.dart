@@ -142,8 +142,8 @@ class AdminDashboardScreen extends StatelessWidget {
                 // Mock data for display purposes
                 final activities = [
                   'John Doe registered a new account.',
-                  'Jane Smith completed "Python Basics".',
-                  'New course "Advanced Flutter" was published.',
+                  'Jane Smith completed a course successfully.',
+                  'New course was published.',
                   'System backup completed successfully.',
                   'Mark signed up as an Instructor.',
                 ];

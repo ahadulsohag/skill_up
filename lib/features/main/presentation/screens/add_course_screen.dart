@@ -62,82 +62,82 @@ class _AddCourseScreenState extends State<AddCourseScreen> {
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : Form(
-        key: _formKey,
-        child: ListView(
-          padding: const EdgeInsets.all(16),
-          children: [
-            TextFormField(
-              controller: _titleController,
-              decoration: const InputDecoration(
-                labelText: 'Course Title',
-                border: OutlineInputBorder(),
-              ),
-              validator: (v) => v!.isEmpty ? 'Required' : null,
-            ),
-            const SizedBox(height: 16),
-            TextFormField(
-              controller: _descController,
-              decoration: const InputDecoration(
-                labelText: 'Description',
-                border: OutlineInputBorder(),
-              ),
-              validator: (v) => v!.isEmpty ? 'Required' : null,
-            ),
-            const SizedBox(height: 16),
-            TextFormField(
-              controller: _durationController,
-              decoration: const InputDecoration(
-                labelText: 'Duration (e.g., 4.5h • 8 lessons)',
-                border: OutlineInputBorder(),
-              ),
-              validator: (v) => v!.isEmpty ? 'Required' : null,
-            ),
-            const SizedBox(height: 16),
-            TextFormField(
-              controller: _xpController,
-              keyboardType: TextInputType.number,
-              decoration: const InputDecoration(
-                labelText: 'XP Reward',
-                border: OutlineInputBorder(),
-              ),
-              validator: (v) => v!.isEmpty ? 'Required' : null,
-            ),
-            const SizedBox(height: 16),
-            Row(
-              children: [
-                Expanded(
-                  child: TextFormField(
-                    controller: _iconController,
+              key: _formKey,
+              child: ListView(
+                padding: const EdgeInsets.all(16),
+                children: [
+                  TextFormField(
+                    controller: _titleController,
+                    decoration: const InputDecoration(
+                      labelText: 'Course Title',
+                      border: OutlineInputBorder(),
+                    ),
+                    validator: (v) => v!.isEmpty ? 'Required' : null,
+                  ),
+                  const SizedBox(height: 16),
+                  TextFormField(
+                    controller: _descController,
+                    decoration: const InputDecoration(
+                      labelText: 'Description',
+                      border: OutlineInputBorder(),
+                    ),
+                    validator: (v) => v!.isEmpty ? 'Required' : null,
+                  ),
+                  const SizedBox(height: 16),
+                  TextFormField(
+                    controller: _durationController,
+                    decoration: const InputDecoration(
+                      labelText: 'Duration (e.g., 4.5h • 8 lessons)',
+                      border: OutlineInputBorder(),
+                    ),
+                    validator: (v) => v!.isEmpty ? 'Required' : null,
+                  ),
+                  const SizedBox(height: 16),
+                  TextFormField(
+                    controller: _xpController,
                     keyboardType: TextInputType.number,
                     decoration: const InputDecoration(
-                      labelText: 'Icon Codepoint',
+                      labelText: 'XP Reward',
                       border: OutlineInputBorder(),
                     ),
+                    validator: (v) => v!.isEmpty ? 'Required' : null,
                   ),
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: TextFormField(
-                    controller: _colorController,
-                    decoration: const InputDecoration(
-                      labelText: 'Color Hex',
-                      border: OutlineInputBorder(),
+                  const SizedBox(height: 16),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: TextFormField(
+                          controller: _iconController,
+                          keyboardType: TextInputType.number,
+                          decoration: const InputDecoration(
+                            labelText: 'Icon Codepoint',
+                            border: OutlineInputBorder(),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: TextFormField(
+                          controller: _colorController,
+                          decoration: const InputDecoration(
+                            labelText: 'Color Hex',
+                            border: OutlineInputBorder(),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 32),
+                  ElevatedButton(
+                    onPressed: _uploadCourse,
+                    style: ElevatedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(vertical: 16),
                     ),
+                    child: const Text('Upload Course'),
                   ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 32),
-            ElevatedButton(
-              onPressed: _uploadCourse,
-              style: ElevatedButton.styleFrom(
-                padding: const EdgeInsets.symmetric(vertical: 16),
+                ],
               ),
-              child: const Text('Upload Course'),
             ),
-          ],
-        ),
-      ),
     );
   }
 }
